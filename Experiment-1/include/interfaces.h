@@ -5,7 +5,7 @@
 namespace Lexical {
 
 class IStringConvertable {
-    virtual std::string to_string() const = 0;
+    virtual std::string ToString() const = 0;
 };
 
 } // namespace Lexical
