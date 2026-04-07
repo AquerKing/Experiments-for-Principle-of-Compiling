@@ -2,7 +2,7 @@
 
 #include "utils.h"
 
-namespace Lexical {
+namespace lex {
 
 // clang-format off
 std::unordered_map<TokenType, std::string>
@@ -33,4 +33,4 @@ std::string Token::Position::ToString() const {
   return oss.str();
 }
 
-} // namespace Lexical
+} // namespace lex

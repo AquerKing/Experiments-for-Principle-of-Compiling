@@ -4,11 +4,15 @@
 #include <memory>
 #include <unordered_map>
 
-namespace Lexical {
+namespace lex {
 
+/**
+ * @brief Enum class representing different types of tokens.
+ */
 enum class TokenType : uint {
 #ifdef LEXICAL_EXPERIMENT_ONLY
-  Error = 0 Keyword = 1,
+  Error = 0,
+  Keyword = 1,
   Seperator = 2,
   ArithmeticOperator = 3,
   LogicalOperator = 4,
@@ -25,6 +29,9 @@ enum class TokenType : uint {
 #endif
 };
 
+/**
+ * @brief A utility class for handling token type operations.
+ */
 class TokenTypeUtils final {
 public:
   TokenTypeUtils &GetInstance() {
@@ -48,7 +55,13 @@ private:
   static std::unordered_map<TokenType, std::string> token_type_string_map;
 };
 
+/**
+ * @brief A struct representing a token in the lexical analysis process.
+ */
 struct Token : public IStringConvertable {
+  /**
+   * @brief A struct representing the position of a token in the source code.
+   */
   struct Position : public IStringConvertable {
     typedef unsigned long long u64;
     u64 row, column;
@@ -68,4 +81,4 @@ struct Token : public IStringConvertable {
   // TODO: Whether to implement a method of formatting into a string.
 };
 
-} // namespace Lexical
+} // namespace lex

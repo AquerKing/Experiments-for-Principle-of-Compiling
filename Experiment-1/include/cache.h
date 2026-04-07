@@ -1,14 +1,18 @@
 #pragma once
 
-#include <sstream>
+#include <string>
 
 #include "types.h"
 
-namespace Lexical {
+namespace lex {
 
 class Cache {
 public:
   Cache(uint cache_size);
+  Cache(const Cache &other) = default;
+  Cache(Cache &&other) noexcept = default;
+  Cache &operator=(const Cache &other) = default;
+  Cache &operator=(Cache &&other) noexcept = default;
 
   /** @brief Loads content into the cache.
    *  @param source The source string to load into the cache.
@@ -43,6 +47,8 @@ public:
    */
   void SetCacheSize(uint size);
 
+  /** @brief Clears the cache.
+   */
   void ClearCache();
 
 private:
@@ -51,4 +57,4 @@ private:
   uint cache_pointer;
 };
 
-} // namespace Lexical
+} // namespace lex

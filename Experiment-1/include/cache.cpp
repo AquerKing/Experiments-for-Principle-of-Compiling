@@ -1,6 +1,6 @@
 #include "cache.h"
 
-namespace Lexical {
+namespace lex {
 
 Cache::Cache(uint cache_size) : cache_size(cache_size), cache_pointer(0) {
   cache.reserve(cache_size);
@@ -33,4 +33,4 @@ void Cache::ClearCache() {
   cache_pointer = 0;
 }
 
-} // namespace Lexical
+} // namespace lex

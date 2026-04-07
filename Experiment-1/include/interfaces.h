@@ -2,10 +2,14 @@
 
 #include <string>
 
-namespace Lexical {
+namespace lex {
 
 class IStringConvertable {
-    virtual std::string ToString() const = 0;
+  /**
+   * Converts the object to a string representation.
+   * @return The string representation of the object.
+   */
+  virtual std::string ToString() const = 0;
 };
 
-} // namespace Lexical
+} // namespace lex
