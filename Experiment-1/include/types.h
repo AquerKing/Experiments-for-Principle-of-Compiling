@@ -27,3 +27,5 @@ typedef int i32;
 typedef short i16;
 typedef char i8;
 #endif
+
+typedef u32 uchar;
