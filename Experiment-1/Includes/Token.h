@@ -3,11 +3,11 @@
 #include <iomanip>
 #include <sstream>
 #include <vector>
+#include <cstdint>
 
 #include "Interfaces.h"
-#include "Types.h"
 
-enum class TokenType : u8 {
+enum class TokenType : uint8_t {
   Invalid,
   Keyword,
   Separater,
@@ -20,16 +20,16 @@ enum class TokenType : u8 {
 struct TokenContextInfo : public IPrintable {
   static TokenContextInfo Invalid;
 
-  u64 Row, Column;
+  uint64_t Row, Column;
 
-  TokenContextInfo(const u64 NewRow = 0, const u64 NewColumn = 0)
+  TokenContextInfo(const uint64_t NewRow = 0, const uint64_t NewColumn = 0)
       : Row(NewRow), Column(NewColumn) {}
 
   bool operator==(const TokenContextInfo &Other) {
     return Row == Other.Row && Column == Other.Column;
   }
 
-  void UpdateInfo(const u64 NewRow, const u64 NewColumn) {
+  void UpdateInfo(const uint64_t NewRow, const uint64_t NewColumn) {
     Row = NewRow;
     Column = NewColumn;
   }
@@ -47,13 +47,13 @@ struct Token {
 
   TokenType Type;
   TokenContextInfo Context;
-  std::vector<uchar> Content;
+  std::vector<uint32_t> Content;
 };
 
 inline std::basic_ostream<char, std::char_traits<char>> &
 operator<<(std::basic_ostream<char, std::char_traits<char>> &__os,
            const Token &Token) {
-  for (uchar Char : Token.Content) {
+  for (uint32_t Char : Token.Content) {
     __os << static_cast<char>(Char);
   }
   return __os;

@@ -3,14 +3,15 @@
 
 #include <iostream>
 
-void TestConstructStateMachine() {
+
+void TestKeywordStateMachine() {
   StateMachine SM;
   LayeredFSAGraph Graph;
 
-  std::vector<std::vector<uchar>> WordList = {
-      ConvertStringToUcharVector("hello"),
-      ConvertStringToUcharVector("hi"),
-      ConvertStringToUcharVector("hijack"),
+  std::vector<std::vector<uint8_t>> WordList = {
+      ConvertStringToU32Vector("hello"),
+      ConvertStringToU32Vector("hi"),
+      ConvertStringToU32Vector("hijack"),
   };
 
   Graph.AddWordList(WordList);
@@ -18,12 +19,12 @@ void TestConstructStateMachine() {
 
   SM.BuildFromLayeredFSAGraph(Graph);
 
-  std::vector<uchar> Inputs = ConvertStringToUcharVector("hello");
+  std::vector<uint8_t> Inputs = ConvertStringToU32Vector("hello");
   std::vector<Token> Tokens = SM.ReceiveInputs(Inputs);
   std::cout << "Token.Content: " << Tokens.front() << std::endl;
 }
 
 int main() {
-  TestConstructStateMachine();
+  TestKeywordStateMachine();
   return 0;
 }
