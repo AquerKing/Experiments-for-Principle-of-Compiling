@@ -1,20 +1,27 @@
 cmake_minimum_required(VERSION 3.20)
 
-include_directories("include")
+include_directories("Includes")
 
-add_executable("lexical-analyzer"
-    "src/main.cpp"
+add_executable("Lexical-Analyzer"
+    "Main.cpp"
 
-    # "include/state_machine.cpp"
-    "include/layered_state_graph.cpp"
-    # "include/utils.cpp"
+    "Source/State.cpp"
+    "Source/Token.cpp"
+
+    "Source/State.cpp"
+    "Source/Token.cpp"
 )
 
-add_executable("lexical-analyzer-tests"
-    "tests/StateMachineTests.cpp"
+add_executable("Lexical-Analyzer-Test"
+    "Tests/TestStateMachine.cpp"
 
-    "include/layered_state_graph.cpp"
+    "Source/State.cpp"
+    "Source/Token.cpp"
 )
 
-target_include_directories("lexical-analyzer-tests" PRIVATE "include")
-add_test(NAME lexical-analyzer-tests COMMAND lexical-analyzer-tests)
+target_include_directories("Lexical-Analyzer-Test"
+    PRIVATE
+    "Includes"
+)
+
+add_test(NAME "Lexical-Analyzer-Test" COMMAND "Lexical-Analyzer-Test")

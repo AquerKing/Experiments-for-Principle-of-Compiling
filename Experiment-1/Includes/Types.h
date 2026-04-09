@@ -15,6 +15,8 @@ typedef long long i64;
 typedef int i32;
 typedef short i16;
 typedef char i8;
+
+typedef u64 ulong;
 #elif UINTPTR_MAX == UINT32_MAX
 #define ARCH_32BIT 1
 #define ARCH_BITS 32
@@ -26,6 +28,8 @@ typedef u32 uint;
 typedef int i32;
 typedef short i16;
 typedef char i8;
+
+typedef u32 ulong;
 #endif
 
 typedef u32 uchar;
