@@ -25,7 +25,8 @@ void TestConstructStateMachine() {
   std::vector<uchar> Inputs = ConvertStringToUcharVector("hello");
   std::vector<Token> Tokens = SM.ReceiveInputs(Inputs);
   assert(Tokens.size() == 1);
-  std::cout << "Token.Content: " << Tokens[0] << std::endl;
+  assert(Tokens.front().Content == ConvertStringToUcharVector("hello"));
+  assert(Tokens.front().IsValid());
 }
 
 int main() {

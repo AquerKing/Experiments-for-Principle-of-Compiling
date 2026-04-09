@@ -20,7 +20,7 @@ void TestConstructStateMachine() {
 
   std::vector<uchar> Inputs = ConvertStringToUcharVector("hello");
   std::vector<Token> Tokens = SM.ReceiveInputs(Inputs);
-  std::cout << "Token.Content: " << Tokens[0] << std::endl;
+  std::cout << "Token.Content: " << Tokens.front() << std::endl;
 }
 
 int main() {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <unordered_map>
 #include <unordered_set>
@@ -17,7 +18,7 @@ class LayeredFSAGraph;
 
 class StateMachine {
 public:
-  StateMachine() : StateMachineReady(true) {}
+  StateMachine() : StateMachineReady(true), CurrentStateID(0) {}
 
   StateID ReceiveInput(InputType Input) {
     std::shared_ptr<State> CurrentState =
@@ -26,7 +27,9 @@ public:
     StateID NextStateID = CurrentState->Transit(Input);
     std::shared_ptr<State> NextState =
         StateManager.GetStateObject(NextStateID).lock();
-    NextState->TryCallTransitionCallback(Cache, Input);
+
+    CurrentStateID = NextStateID;
+    NextState->ExecuteStrategy(Cache, Input);
 
     StateMachineReady = false;
 
@@ -63,13 +66,8 @@ public:
   }
 
   bool IsEndState(StateID ID) const {
-    std::shared_ptr<State> State = StateManager.GetStateObject(ID).lock();
-    if (!State) {
-      throw std::runtime_error("StateMachine: Non-existed state.");
-      return false;
-    }
-    return State->GetStateType() == StateType::End ||
-           State->GetStateType() == StateType::Error;
+    StateType Type = StateManager.GetStateType(ID);
+    return Type == StateType::End || Type == StateType::Error;
   }
 
   void BuildFromLayeredFSAGraph(const LayeredFSAGraph &Graph) {
@@ -91,6 +89,7 @@ public:
       StateIDs.insert(ID);
     }
 
+    // Update state configs
     for (auto StateID : StateIDs) {
       StateConfig Config;
       Config.Strategy = {
@@ -102,15 +101,21 @@ public:
       StateManager.UpdateStateConfig(StateID, Config);
     }
 
-    for (auto StateID : Graph.EndStates) {
+    // Update start state config
+    {
       StateConfig Config;
       Config.Strategy = {
-          StateConfig::StatePostTransitionStrategy::Append,
+          StateConfig::StatePostTransitionStrategy::Ignore,
           [](TokenCache &Cache, InputType Input) { Cache.Append(Input); }};
-      Config.TransitionMap = Graph.TransitionMaps.at(StateID);
-      Config.Type = StateType::End;
+      Config.TransitionMap = Graph.TransitionMaps.at(0);
+      Config.Type = StateType::Start;
 
-      StateManager.UpdateStateConfig(StateID, Config);
+      StateManager.UpdateStateConfig(0, Config);
+    }
+
+    // Update end states' type
+    for (auto StateID : Graph.EndStates) {
+      StateManager.UpdateStateType(StateID, StateType::End);
     }
   }
 

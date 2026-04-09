@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <functional>
 #include <memory>
 #include <stdexcept>
@@ -29,7 +30,7 @@ public:
   Token GetToken() const {
     Token Token;
 
-    if (!Token.Content.empty()) {
+    if (!Sequence.empty()) {
       Token.Type = Type;
       Token.Context = ContextInfo;
       Token.Content = Sequence;
@@ -67,6 +68,7 @@ struct StateConfig {
   };
 
   StateType Type;
+  TokenType CacheFlag;
   StatePostTransitionStrategy Strategy;
   std::unordered_map<InputType, StateID> TransitionMap;
 };
@@ -93,7 +95,11 @@ public:
     StateType = Config.Type;
   }
 
-  void TryCallTransitionCallback(TokenCache &Cache, InputType Input) {
+  void UpdateType(StateType NewType) { StateType = NewType; }
+
+  void ExecuteStrategy(TokenCache &Cache, InputType Input) {
+    Cache.SetType(TypeFlag);
+
     if (!Strategy.OperatorCallback) {
       return;
     }
@@ -105,6 +111,7 @@ public:
 private:
   StateID ID;
   StateConfig::StatePostTransitionStrategy Strategy;
+  TokenType TypeFlag;
   StateType StateType;
   std::unordered_map<InputType, StateID> TransitionMap;
 };
@@ -190,7 +197,9 @@ public:
 
   StateConfigUpdateResult UpdateStateConfig(StateID ID,
                                             const StateConfig &Config) {
-    std::shared_ptr<State> State = GetStateObject(ID).lock();
+    assert(StateIDMap.find(ID) != StateIDMap.end());
+
+    std::shared_ptr<State> State = StateIDMap.at(ID);
 
     if (!State) {
       return StateConfigUpdateResult::NonexistedState;
@@ -199,6 +208,18 @@ public:
     State->UpdateConfig(Config);
 
     return StateConfigUpdateResult::Success;
+  }
+
+  void UpdateStateType(StateID ID, StateType Type) {
+    assert(StateIDMap.find(ID) != StateIDMap.end());
+
+    std::shared_ptr<State> State = StateIDMap.at(ID);
+    State->UpdateType(Type);
+  }
+
+  StateType GetStateType(StateID ID) const {
+    assert(StateIDMap.find(ID) != StateIDMap.end());
+    return StateIDMap.at(ID)->GetStateType();
   }
 
 private:

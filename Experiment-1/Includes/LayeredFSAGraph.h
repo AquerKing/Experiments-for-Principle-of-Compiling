@@ -29,7 +29,7 @@ class LayeredFSAGraph {
   friend class StateMachine;
 
 public:
-  void AddWordList(std::vector<std::vector<uchar>> List) {
+  void AddWordList(std::vector<std::vector<uchar>> &List) {
     if (GraphBuilt) {
       throw std::runtime_error(
           "LayeredFSAGraph: Graph built, anything new refused.");
@@ -51,20 +51,26 @@ public:
 
         // Allocate a new state id if not existed
         if (StateIDMap.find(PositionTuple) == StateIDMap.end()) {
-          StateIDMap[PositionTuple] = GetNextStateID();
-          if (j == WordList[i].size() - 1) {
-            EndStates.insert(StateIDMap[PositionTuple]);
-          }
+          ulong NewID = GetNextStateID();
+          StateIDMap[PositionTuple] = NewID;
         }
 
         // Record transitions
+        ulong ThisStateID = StateIDMap[PositionTuple];
         if (j == 0) {
-          TransitionMaps[0][WordList[i][j]] = StateIDMap[PositionTuple];
-        } else {
+          TransitionMaps[0][WordList[i][j]] = ThisStateID;
+        } else if (j == WordList[i].size() - 1) {
+          EndStates.insert(ThisStateID);
+          if (TransitionMaps.find(ThisStateID) == TransitionMaps.end()) {
+            TransitionMaps[ThisStateID] = {};
+          }
+        }
+
+        if (j > 0) {
           std::tuple<ulong, uchar> LastPositionTuple =
               std::make_tuple(j - 1, WordList[i][j - 1]);
           TransitionMaps[StateIDMap[LastPositionTuple]][WordList[i][j]] =
-              StateIDMap[PositionTuple];
+              ThisStateID;
         }
       }
     }
