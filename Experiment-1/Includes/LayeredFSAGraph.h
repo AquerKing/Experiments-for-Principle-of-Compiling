@@ -10,11 +10,11 @@
 
 class StateMachine;
 
-typedef std::tuple<uint64_t, uint8_t> PositionTuple;
+typedef std::tuple<uint64_t, uint32_t> PositionTuple;
 struct PositionTupleHash {
   std::size_t operator()(const PositionTuple &k) const {
     auto [Column, Character] = k;
-    return std::hash<ulong>{}(Column) ^ (std::hash<uint8_t>{}(Character) << 1);
+    return std::hash<ulong>{}(Column) ^ (std::hash<uint32_t>{}(Character) << 1);
   }
 };
 
@@ -39,7 +39,7 @@ public:
       }
 
       for (uint64_t j = 0; j < WordList[i].size(); ++j) {
-        std::tuple<uint64_t, uint8_t> PositionTuple =
+        std::tuple<uint64_t, uint32_t> PositionTuple =
             std::make_tuple(j, WordList[i][j]);
 
         // Allocate a new state id if not existed
@@ -52,18 +52,18 @@ public:
         uint64_t ThisStateID = StateIDMap[PositionTuple];
         if (j == 0) {
           TransitionMaps[0][WordList[i][j]] = ThisStateID;
-        } else if (j == WordList[i].size() - 1) {
+        } else if (j > 0) {
+          std::tuple<uint64_t, uint32_t> LastPositionTuple =
+              std::make_tuple(j - 1, WordList[i][j - 1]);
+          TransitionMaps[StateIDMap[LastPositionTuple]][WordList[i][j]] =
+              ThisStateID;
+        }
+
+        if (j == WordList[i].size() - 1) {
           EndStates.insert(ThisStateID);
           if (TransitionMaps.find(ThisStateID) == TransitionMaps.end()) {
             TransitionMaps[ThisStateID] = {};
           }
-        }
-
-        if (j > 0) {
-          std::tuple<uint64_t, uint8_t> LastPositionTuple =
-              std::make_tuple(j - 1, WordList[i][j - 1]);
-          TransitionMaps[StateIDMap[LastPositionTuple]][WordList[i][j]] =
-              ThisStateID;
         }
       }
     }
@@ -83,11 +83,12 @@ private:
 
   uint64_t NextStateID = 3;
   std::unordered_set<uint64_t> EndStates;
-  std::unordered_map<std::tuple<uint64_t, uint8_t>, uint64_t, PositionTupleHash>
+  std::unordered_map<std::tuple<uint64_t, uint32_t>, uint64_t,
+                     PositionTupleHash>
       StateIDMap;
-  // std::vector<std::tuple<uint64_t, uint64_t, uint8_t>> Transitions;
-  std::unordered_map<uint64_t, std::unordered_map<uint8_t, uint64_t>>
+  // std::vector<std::tuple<uint64_t, uint64_t, uint32_t>> Transitions;
+  std::unordered_map<uint64_t, std::unordered_map<uint32_t, uint64_t>>
       TransitionMaps;
-  std::vector<std::vector<uint8_t>> WordList;
+  std::vector<std::vector<uint32_t>> WordList;
   bool GraphBuilt = false;
 };

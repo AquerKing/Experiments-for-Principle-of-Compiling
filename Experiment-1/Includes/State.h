@@ -56,7 +56,7 @@ enum class StateType : uint8_t {
 struct StateConfig {
 
   struct StatePostTransitionStrategy {
-    enum Strategy : uint8_t {
+    enum Strategy : uint32_t {
       Append,
       Ignore,
       Clear,

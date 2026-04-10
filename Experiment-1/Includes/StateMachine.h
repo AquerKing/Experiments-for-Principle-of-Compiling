@@ -18,7 +18,7 @@ class LayeredFSAGraph;
 
 class StateMachine {
 public:
-  enum class TokenGenerationStrategy {
+  enum class TokenGenerationStrategy : uint8_t {
     GenerateSoonIfPossible,
     GenerateAtLast,
   };

@@ -8,7 +8,7 @@ void TestKeywordStateMachine() {
   StateMachine SM;
   LayeredFSAGraph Graph;
 
-  std::vector<std::vector<uint8_t>> WordList = {
+  std::vector<std::vector<uint32_t>> WordList = {
       ConvertStringToU32Vector("hello"),
       ConvertStringToU32Vector("hi"),
       ConvertStringToU32Vector("hijack"),
@@ -19,7 +19,7 @@ void TestKeywordStateMachine() {
 
   SM.BuildFromLayeredFSAGraph(Graph);
 
-  std::vector<uint8_t> Inputs = ConvertStringToU32Vector("hello");
+  std::vector<uint32_t> Inputs = ConvertStringToU32Vector("hello");
   std::vector<Token> Tokens = SM.ReceiveInputs(Inputs);
   std::cout << "Token.Content: " << Tokens.front() << std::endl;
 }
