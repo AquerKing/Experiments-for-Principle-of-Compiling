@@ -15,7 +15,7 @@ typedef std::tuple<uint64_t, uint32_t> PositionTuple;
 struct PositionTupleHash {
   std::size_t operator()(const PositionTuple &k) const {
     auto [Column, Character] = k;
-    return std::hash<ulong>{}(Column) ^ (std::hash<uint32_t>{}(Character) << 1);
+    return std::hash<uint32_t>{}(Column) ^ (std::hash<uint32_t>{}(Character) << 1);
   }
 };
 

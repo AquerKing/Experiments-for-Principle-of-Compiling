@@ -132,9 +132,9 @@ TEST_F(SeparatorStateMachineTest, ParsesComplexSeparators) {
 }
 
 // ============================================================
-// 3. 运算符状态机测试套件
+// 3. 算术运算符状态机测试套件
 // ============================================================
-class OperatorStateMachineTest : public ::testing::Test {
+class ArithmeticOperatorStateMachineTest : public ::testing::Test {
 protected:
   StateMachine SM;
   LayeredFSAGraph Graph;
@@ -151,7 +151,7 @@ protected:
   }
 };
 
-TEST_F(OperatorStateMachineTest, ArithmeticOperators) {
+TEST_F(ArithmeticOperatorStateMachineTest, ArithmeticOperators) {
   std::vector<std::vector<uint32_t>> WordList = {
       {static_cast<uint32_t>('+')},
       {static_cast<uint32_t>('-')},
@@ -177,7 +177,27 @@ TEST_F(OperatorStateMachineTest, ArithmeticOperators) {
   EXPECT_EQ(Tokens.front().Type, TokenType::Error);
 }
 
-TEST_F(OperatorStateMachineTest, RelationalOperators) {
+// ============================================================
+// 4. 关系运算符状态机测试套件
+// ============================================================
+class RelationalOperatorStateMachineTest : public ::testing::Test {
+protected:
+  StateMachine SM;
+  LayeredFSAGraph Graph;
+
+  void SetupGraph(std::vector<std::vector<uint32_t>> WordList) {
+    StateFlagStrategy FlagStrategy = {
+        TokenType::Error,
+        TokenType::RelationalOperator,
+    };
+    Graph.UpdateStateFlagStrategy(FlagStrategy);
+    Graph.AddWordList(WordList);
+    Graph.BuildGraph();
+    SM.BuildFromLayeredFSAGraph(Graph);
+  }
+};
+
+TEST_F(RelationalOperatorStateMachineTest, RelationalOperators) {
   std::vector<std::vector<uint32_t>> WordList = {
       ConvertStringToU32Vector("<"),  ConvertStringToU32Vector("<="),
       ConvertStringToU32Vector("="),  ConvertStringToU32Vector(">"),
@@ -203,7 +223,7 @@ TEST_F(OperatorStateMachineTest, RelationalOperators) {
 }
 
 // ============================================================
-// 4. 主函数
+// 5. 主函数
 // ============================================================
 int main(int argc, char **argv) {
   std::cout << ">>> TestStateMachine Start <<<" << std::endl;
