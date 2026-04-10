@@ -13,16 +13,21 @@ add_executable("Lexical-Analyzer"
     "Source/Token.cpp"
 )
 
-add_executable("Lexical-Analyzer-Test"
+# Tests
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+add_executable("Test-Lexical-Analyzer-StateMachine"
     "Tests/TestStateMachine.cpp"
 
     "Source/State.cpp"
     "Source/Token.cpp"
 )
 
-target_include_directories("Lexical-Analyzer-Test"
-    PRIVATE
-    "Includes"
-)
+target_link_libraries("Test-Lexical-Analyzer-StateMachine" PRIVATE GTest::gtest_main)
 
-add_test(NAME "Lexical-Analyzer-Test" COMMAND "Lexical-Analyzer-Test")
+gtest_discover_tests("Test-Lexical-Analyzer-StateMachine")
+
+# add_test(
+#     NAME "Test-Lexical-Analyzer-StateMachine"
+#     COMMAND "Test-Lexical-Analyzer-StateMachine"
+# )

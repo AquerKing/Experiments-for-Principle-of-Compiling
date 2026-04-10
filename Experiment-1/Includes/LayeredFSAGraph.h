@@ -1,5 +1,6 @@
 #pragma once
 
+#include "State.h"
 #include <cstdint>
 #include <functional>
 #include <stdexcept>
@@ -71,6 +72,10 @@ public:
     GraphBuilt = true;
   }
 
+  void UpdateStateFlagStrategy(const StateFlagStrategy &Strategy) {
+    FlagStrategy = Strategy;
+  }
+
   bool IsGraphBuilt() const { return GraphBuilt; }
 
 private:
@@ -90,5 +95,6 @@ private:
   std::unordered_map<uint64_t, std::unordered_map<uint32_t, uint64_t>>
       TransitionMaps;
   std::vector<std::vector<uint32_t>> WordList;
+  StateFlagStrategy FlagStrategy;
   bool GraphBuilt = false;
 };

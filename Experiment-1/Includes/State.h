@@ -11,6 +11,8 @@
 
 #include "Token.h"
 
+class StateManager;
+
 typedef uint64_t StateID;
 
 extern const StateID StartStateID;
@@ -72,7 +74,15 @@ struct StateConfig {
   std::unordered_map<uint32_t, StateID> TransitionMap;
 };
 
+struct StateFlagStrategy {
+  TokenType DefaultIntermediateStateFlag = TokenType::Invalid;
+  TokenType DefaultEndStateFlag = TokenType::Token;
+  TokenType DefaultReservedEndStateFlag = TokenType::Error;
+};
+
 class State {
+  friend class StateManager;
+
 public:
   State(StateID ID) : ID(ID) {}
 
@@ -92,6 +102,7 @@ public:
     Strategy = Config.Strategy;
     TransitionMap = Config.TransitionMap;
     Type = Config.Type;
+    TypeFlag = Config.CacheFlag;
   }
 
   void UpdateType(StateType NewType) { Type = NewType; }
@@ -135,6 +146,7 @@ public:
         StateConfig::StatePostTransitionStrategy::Append,
         [](TokenCache &Cache, uint32_t Input) { Cache.Append(Input); }};
     StartStateConfig.Type = StateType::Start;
+    StartStateConfig.CacheFlag = TokenType::Invalid;
     UpdateStateConfig(0, StartStateConfig);
 
     StateConfig DefaultEndStateConfig;
@@ -142,7 +154,8 @@ public:
         StateConfig::StatePostTransitionStrategy::Append,
         [](TokenCache &Cache, uint32_t Input) { Cache.Append(Input); }};
     DefaultEndStateConfig.Type = StateType::End;
-    UpdateStateConfig(0, StartStateConfig);
+    DefaultEndStateConfig.CacheFlag = TokenType::Error;
+    UpdateStateConfig(1, StartStateConfig);
   }
 
   StateManager(const StateManager &Other) = delete;
@@ -219,6 +232,11 @@ public:
   StateType GetStateType(StateID ID) const {
     assert(StateIDMap.find(ID) != StateIDMap.end());
     return StateIDMap.at(ID)->GetStateType();
+  }
+
+  void UpdateStateFlag(StateID ID, TokenType Type) {
+    assert(StateIDMap.find(ID) != StateIDMap.end());
+    GetStateObject(ID).lock()->TypeFlag = Type;
   }
 
 private:
