@@ -57,13 +57,17 @@ public:
         continue;
       }
 
+      Token TempToken = Cache.GetToken();
+
       switch (GenerationStrategy) {
       case TokenGenerationStrategy::GenerateSoonIfPossible:
-        Tokens.emplace_back(Cache.GetToken());
+        if (TempToken.IsValid()) {
+          Tokens.emplace_back(TempToken);
+        }
         Reset();
         break;
       case TokenGenerationStrategy::GenerateAtLast:
-        if (i == Inputs.size() - 1) {
+        if (i == Inputs.size() - 1 && TempToken.IsValid()) {
           Tokens.emplace_back(Cache.GetToken());
           Reset();
         }
@@ -117,6 +121,7 @@ public:
           [](TokenCache &Cache, uint32_t Input) { Cache.Append(Input); }};
       Config.TransitionMap = Graph.TransitionMaps.at(StateID);
       Config.Type = StateType::Intermediate;
+      Config.CacheFlag = Graph.FlagStrategy.DefaultIntermediateStateFlag;
 
       Manager.UpdateStateConfig(StateID, Config);
     }
@@ -129,13 +134,28 @@ public:
           [](TokenCache &Cache, uint32_t Input) { Cache.Append(Input); }};
       Config.TransitionMap = Graph.TransitionMaps.at(0);
       Config.Type = StateType::Start;
+      Config.CacheFlag = TokenType::Invalid;
 
       Manager.UpdateStateConfig(0, Config);
+    }
+
+    // Update default end state config
+    {
+      StateConfig Config;
+      Config.Strategy = {
+          StateConfig::StatePostTransitionStrategy::Append,
+          [](TokenCache &Cache, uint32_t Input) { Cache.Append(Input); }};
+      Config.TransitionMap = {};
+      Config.Type = StateType::Error;
+      Config.CacheFlag = Graph.FlagStrategy.DefaultReservedEndStateFlag;
+
+      Manager.UpdateStateConfig(1, Config);
     }
 
     // Update end states' type
     for (auto StateID : Graph.EndStates) {
       Manager.UpdateStateType(StateID, StateType::End);
+      Manager.UpdateStateFlag(StateID, Graph.FlagStrategy.DefaultEndStateFlag);
     }
   }
 

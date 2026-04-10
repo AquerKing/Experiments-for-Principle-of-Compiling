@@ -15,6 +15,7 @@ enum class TokenType : uint8_t {
   RelationalOperator,
   UnsignedNumber,
   Token,
+  Error,
 };
 
 struct TokenContextInfo : public IPrintable {
@@ -43,7 +44,12 @@ struct TokenContextInfo : public IPrintable {
 };
 
 struct Token {
-  bool IsValid() const { return Type == TokenType::Invalid; }
+  Token() = default;
+  Token(TokenType Type, TokenContextInfo Context,
+        std::vector<uint32_t> &Sequence)
+      : Type(Type), Context(Context), Content(Sequence) {}
+
+  bool IsValid() const { return Type != TokenType::Invalid; }
 
   TokenType Type;
   TokenContextInfo Context;
