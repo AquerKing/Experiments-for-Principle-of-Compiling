@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cstdint>
 #include <iomanip>
 #include <sstream>
 #include <vector>
-#include <cstdint>
 
 #include "Interfaces.h"
 
