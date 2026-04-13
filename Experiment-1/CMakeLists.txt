@@ -4,7 +4,15 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include_directories("Includes")
+set(Nlohmann_Json_HEADER_PATH
+    "Third-Party/Nlohmann_Json/single_include"
+    "Third-Party/Nlohmann_Json/include"
+)
+
+include_directories(
+    "Includes"
+    ${Nlohmann_Json_HEADER_PATH}
+)
 
 add_executable("Lexical-Analyzer"
     "Main.cpp"

@@ -4,7 +4,7 @@
 #include <vector>
 
 // 假设这些是你的头文件
-#include "LayeredFSAGraph.h"
+#include "LayeredDFAGraph.h"
 #include "State.h"
 #include "StateMachine.h"
 #include "Token.h"
@@ -19,7 +19,7 @@
 class KeywordStateMachineTest : public ::testing::Test {
 protected:
   StateMachine SM;
-  LayeredFSAGraph Graph;
+  LayeredDFAGraph Graph;
 
   // 在每个测试开始前运行 (SetUp)
   void SetUp() override {
@@ -39,7 +39,7 @@ protected:
 
     Graph.AddWordList(WordList);
     Graph.BuildGraph();
-    SM.BuildFromLayeredFSAGraph(Graph);
+    SM.BuildFromLayeredDFAGraph(Graph);
   }
 
   // 在每个测试结束后运行 (TearDown)
@@ -94,7 +94,7 @@ TEST_F(KeywordStateMachineTest, HandlesInvalidCombination) {
 class SeparatorStateMachineTest : public ::testing::Test {
 protected:
   StateMachine SM;
-  LayeredFSAGraph Graph;
+  LayeredDFAGraph Graph;
 
   void SetUp() override {
     StateFlagStrategy FlagStrategy = {
@@ -111,7 +111,7 @@ protected:
 
     Graph.AddWordList(WordList);
     Graph.BuildGraph();
-    SM.BuildFromLayeredFSAGraph(Graph);
+    SM.BuildFromLayeredDFAGraph(Graph);
   }
 };
 
@@ -137,7 +137,7 @@ TEST_F(SeparatorStateMachineTest, ParsesComplexSeparators) {
 class ArithmeticOperatorStateMachineTest : public ::testing::Test {
 protected:
   StateMachine SM;
-  LayeredFSAGraph Graph;
+  LayeredDFAGraph Graph;
 
   void SetupGraph(std::vector<std::vector<uint32_t>> WordList) {
     StateFlagStrategy FlagStrategy = {
@@ -147,7 +147,7 @@ protected:
     Graph.UpdateStateFlagStrategy(FlagStrategy);
     Graph.AddWordList(WordList);
     Graph.BuildGraph();
-    SM.BuildFromLayeredFSAGraph(Graph);
+    SM.BuildFromLayeredDFAGraph(Graph);
   }
 };
 
@@ -183,7 +183,7 @@ TEST_F(ArithmeticOperatorStateMachineTest, ArithmeticOperators) {
 class RelationalOperatorStateMachineTest : public ::testing::Test {
 protected:
   StateMachine SM;
-  LayeredFSAGraph Graph;
+  LayeredDFAGraph Graph;
 
   void SetupGraph(std::vector<std::vector<uint32_t>> WordList) {
     StateFlagStrategy FlagStrategy = {
@@ -193,7 +193,7 @@ protected:
     Graph.UpdateStateFlagStrategy(FlagStrategy);
     Graph.AddWordList(WordList);
     Graph.BuildGraph();
-    SM.BuildFromLayeredFSAGraph(Graph);
+    SM.BuildFromLayeredDFAGraph(Graph);
   }
 };
 

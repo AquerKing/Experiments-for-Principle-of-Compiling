@@ -1,6 +1,5 @@
 #pragma once
 
-#include "State.h"
 #include <cstdint>
 #include <functional>
 #include <stdexcept>
@@ -9,28 +8,37 @@
 #include <unordered_set>
 #include <vector>
 
+#include "State.h"
+
 class StateMachine;
 
 typedef std::tuple<uint64_t, uint32_t> PositionTuple;
+
+/** Hash function for PositionTuple. */
 struct PositionTupleHash {
   std::size_t operator()(const PositionTuple &k) const {
     auto [Column, Character] = k;
-    return std::hash<uint32_t>{}(Column) ^ (std::hash<uint32_t>{}(Character) << 1);
+    return std::hash<uint32_t>{}(Column) ^
+           (std::hash<uint32_t>{}(Character) << 1);
   }
 };
 
-class LayeredFSAGraph {
+/** A graph representing a layered finite state automaton for word matching. */
+class LayeredDFAGraph {
   friend class StateMachine;
 
 public:
   void AddWordList(std::vector<std::vector<uint32_t>> &List) {
     if (GraphBuilt) {
       throw std::runtime_error(
-          "LayeredFSAGraph: Graph built, anything new refused.");
+          "LayeredDFAGraph: Graph built, anything new refused.");
     }
     WordList.insert(WordList.end(), List.begin(), List.end());
   }
 
+  /**
+   * @brief Build the graph from the added word list.
+   */
   void BuildGraph() {
     // Traverse all words to allocate state ids and record transitions
     for (uint64_t i = 0; i < WordList.size(); ++i) {
@@ -76,25 +84,42 @@ public:
     FlagStrategy = Strategy;
   }
 
+  /**
+   * @brief Check if the graph is built.
+   *
+   * @return bool
+   */
   bool IsGraphBuilt() const { return GraphBuilt; }
 
 private:
+  /**
+   * @brief Get the Next State ID for graph building. State IDs 0, 1 and 2 are
+   * pre-allocated for start state, default end state and reserved end state, so
+   * the next state ID starts from 3.
+   *
+   * @return uint64_t
+   */
   uint64_t GetNextStateID() {
     if (NextStateID < 3) {
-      throw std::runtime_error("LayeredFSAGraph: State count overflowed.");
+      throw std::runtime_error("LayeredDFAGraph: State count overflowed.");
     }
     return NextStateID++;
   }
 
-  uint64_t NextStateID = 3;
-  std::unordered_set<uint64_t> EndStates;
+  uint64_t NextStateID = 3; // Start state (0), default end state (1) and
+  // reserved end state (2) are pre-allocated
+  // graph building only
+  std::unordered_map<uint64_t, std::unordered_map<uint32_t, uint64_t>>
+      TransitionMaps; // StateID -> (Input -> StateID), used for graph building
+                      // only
+  std::unordered_set<uint64_t>
+      EndStates; // StateIDs of end states, used for graph building only
   std::unordered_map<std::tuple<uint64_t, uint32_t>, uint64_t,
                      PositionTupleHash>
-      StateIDMap;
-  // std::vector<std::tuple<uint64_t, uint64_t, uint32_t>> Transitions;
-  std::unordered_map<uint64_t, std::unordered_map<uint32_t, uint64_t>>
-      TransitionMaps;
-  std::vector<std::vector<uint32_t>> WordList;
-  StateFlagStrategy FlagStrategy;
-  bool GraphBuilt = false;
+      StateIDMap; // Position tuple (column, character) -> StateID, used for
+  std::vector<std::vector<uint32_t>> WordList; // For graph building only
+  StateFlagStrategy FlagStrategy; // State flag strategy for the graph, used for
+                                  // state config building
+  bool GraphBuilt =
+      false; // Whether the graph is built, used for graph building control
 };

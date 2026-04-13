@@ -8,14 +8,15 @@
 #include <unordered_set>
 #include <vector>
 
-#include "LayeredFSAGraph.h"
+#include "LayeredDFAGraph.h"
 #include "State.h"
 #include "Token.h"
 
 typedef uint64_t StateMachineID;
 
-class LayeredFSAGraph;
+class LayeredDFAGraph;
 
+/** A class representing a state machine. */
 class StateMachine {
 public:
   enum class TokenGenerationStrategy : uint8_t {
@@ -26,6 +27,12 @@ public:
 public:
   StateMachine() : StateMachineReady(true), CurrentStateID(0) {}
 
+  /**
+   * @brief Receive an input and transition to the next state.
+   *
+   * @param Input The input to process.
+   * @return StateID The ID of the next state.
+   */
   StateID ReceiveInput(uint32_t Input) {
     std::shared_ptr<State> CurrentState =
         Manager.GetStateObject(CurrentStateID).lock();
@@ -42,6 +49,14 @@ public:
     return NextStateID;
   }
 
+  /**
+   * @brief Receive a sequence of inputs and generate tokens according to the
+   * specified, token generation strategy.
+   *
+   * @param Inputs
+   * @param GenerationStrategy
+   * @return std::vector<Token>
+   */
   std::vector<Token> ReceiveInputs(
       std::vector<uint32_t> Inputs,
       TokenGenerationStrategy GenerationStrategy =
@@ -78,6 +93,12 @@ public:
     return Tokens;
   }
 
+  /**
+   * @brief Try to get a token from the current state.
+   *
+   * @return std::optional<Token> The token if the current state is an end
+   * state, otherwise std::nullopt.
+   */
   std::optional<Token> TryGetToken() {
     std::shared_ptr<State> State =
         Manager.GetStateObject(CurrentStateID).lock();
@@ -89,12 +110,23 @@ public:
     return std::nullopt;
   }
 
+  /**
+   * @brief Check if a state is an end state.
+   *
+   * @param ID The ID of the state to check.
+   * @return bool
+   */
   bool IsEndState(StateID ID) const {
     StateType Type = Manager.GetStateType(ID);
     return Type == StateType::End || Type == StateType::Error;
   }
 
-  void BuildFromLayeredFSAGraph(const LayeredFSAGraph &Graph) {
+  /**
+   * @brief Build the state machine from a layered DFA graph.
+   *
+   * @param Graph The layered DFA graph to build from.
+   */
+  void BuildFromLayeredDFAGraph(const LayeredDFAGraph &Graph) {
     if (!StateMachineReady) {
       throw std::runtime_error("StateMachine: State machine should be reset "
                                "before building.");
@@ -159,6 +191,9 @@ public:
     }
   }
 
+  /**
+   * @brief Reset the state machine to its initial state.
+   */
   void Reset() {
     CurrentStateID = StartStateID;
     ContextInfo = TokenContextInfo::Invalid;
