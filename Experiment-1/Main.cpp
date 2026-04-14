@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "LayeredDFAGraph.h"
 #include "StateMachine.h"
 #include "Utils.h"
 
@@ -24,11 +25,14 @@ struct ProgramRuntimeInfo {
 // Global variable to hold the runtime information of the program such as
 // keywords, separators, operators, etc. This will be populated from the
 // configuration file and used throughout the program.
-ProgramRuntimeInfo RuntimeInfo;
+static ProgramRuntimeInfo RuntimeInfo;
+static StateMachine LexicalAnalyzer;
 
 void PrintStartupMessage(std::vector<std::string_view> &Args);
 void PrintUsageMessage(std::vector<std::string_view> &Args);
 void LoadConfiguration(std::vector<std::string_view> &Args);
+
+void BuildStateMachines();
 
 static const std::unordered_map<
     std::string_view, std::function<void(std::vector<std::string_view> &)>>
@@ -174,4 +178,18 @@ void LoadConfiguration(std::vector<std::string_view> &Args) {
         std::cerr << "Error: Invalid configuration format: " << e.what()
                   << std::endl;
     }
+}
+
+void BuildStateMachines() {
+  LayeredDFAGraph KeywordDFA;
+  LayeredDFAGraph SeparatorDFA;
+  LayeredDFAGraph ArithmeticOperatorDFA;
+  LayeredDFAGraph RelationalOperatorDFA;
+
+  KeywordDFA.AddWordList(RuntimeInfo.KeywordList);
+  SeparatorDFA.AddWordList(RuntimeInfo.SeparatorList);
+  ArithmeticOperatorDFA.AddWordList(RuntimeInfo.ArithmeticOperatorList);
+  RelationalOperatorDFA.AddWordList(RuntimeInfo.RelationalOperatorList);
+
+  
 }
