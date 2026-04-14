@@ -5,8 +5,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(Nlohmann_Json_HEADER_PATH
-    "Third-Party/Nlohmann_Json/single_include"
-    "Third-Party/Nlohmann_Json/include"
+    "Third-party/Nlohmann_Json/single_include"
+    "Third-party/Nlohmann_Json/include"
 )
 
 include_directories(
