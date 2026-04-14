@@ -1,5 +1,7 @@
 #pragma once
 
+#include <sys/types.h>
+
 #include <cstddef>
 #include <memory>
 #include <optional>
@@ -79,6 +81,7 @@ public:
         if (TempToken.IsValid()) {
           Tokens.emplace_back(TempToken);
         }
+        ContextInfo.Column += i;
         Reset();
         break;
       case TokenGenerationStrategy::GenerateAtLast:
@@ -191,6 +194,10 @@ public:
     }
   }
 
+  void SetContextInfo(uint64_t Row, uint64_t Column) {
+    ContextInfo = TokenContextInfo(Row, Column);
+  }
+
   /**
    * @brief Reset the state machine to its initial state.
    */
@@ -200,6 +207,13 @@ public:
     Cache.Clear();
     StateMachineReady = true;
   }
+
+  /**
+   * @brief Get a reference to the state manager.
+   *
+   * @return StateManager&
+   */
+  StateManager &GetStateManager() { return Manager; }
 
 private:
   StateMachineID ID;
