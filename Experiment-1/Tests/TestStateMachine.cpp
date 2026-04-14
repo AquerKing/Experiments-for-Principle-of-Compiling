@@ -11,7 +11,7 @@
 #include "Utils.h"
 
 // --- 辅助宏或函数 (可选，为了简化代码) ---
-// 这里直接使用 ConvertStringToU32Vector，假设它已在全局或 Utils 中定义
+// 这里直接使用 ConvertStringToU8Vector，假设它已在全局或 Utils 中定义
 
 // ============================================================
 // 1. 关键字状态机测试套件
@@ -30,11 +30,11 @@ protected:
     };
     Graph.UpdateStateFlagStrategy(FlagStrategy);
 
-    std::vector<std::vector<uint32_t>> WordList = {
-        ConvertStringToU32Vector("do"),     ConvertStringToU32Vector("end"),
-        ConvertStringToU32Vector("for"),    ConvertStringToU32Vector("if"),
-        ConvertStringToU32Vector("printf"), ConvertStringToU32Vector("scanf"),
-        ConvertStringToU32Vector("then"),   ConvertStringToU32Vector("while"),
+    std::vector<std::vector<uint8_t>> WordList = {
+        ConvertStringToU8Vector("do"),     ConvertStringToU8Vector("end"),
+        ConvertStringToU8Vector("for"),    ConvertStringToU8Vector("if"),
+        ConvertStringToU8Vector("printf"), ConvertStringToU8Vector("scanf"),
+        ConvertStringToU8Vector("then"),   ConvertStringToU8Vector("while"),
     };
 
     Graph.AddWordList(WordList);
@@ -48,12 +48,12 @@ protected:
 
 // 子测试：测试单个关键字 "do"
 TEST_F(KeywordStateMachineTest, HandlesDoKeyword) {
-  std::vector<uint32_t> Inputs = ConvertStringToU32Vector("do");
+  std::vector<uint8_t> Inputs = ConvertStringToU8Vector("do");
   std::vector<Token> Tokens = SM.ReceiveInputs(
       Inputs, StateMachine::TokenGenerationStrategy::GenerateAtLast);
 
   ASSERT_EQ(Tokens.size(), 1) << "Token size should be 1";
-  EXPECT_EQ(Tokens.front().Content, ConvertStringToU32Vector("do"));
+  EXPECT_EQ(Tokens.front().Content, ConvertStringToU8Vector("do"));
   EXPECT_TRUE(Tokens.front().IsValid());
   EXPECT_EQ(Tokens.front().Type, TokenType::Keyword);
 }
@@ -66,7 +66,7 @@ TEST_F(KeywordStateMachineTest, HandlesOtherKeywords) {
 
   for (const auto &kw : keywords) {
     SM.Reset(); // 在循环内重置
-    std::vector<uint32_t> Inputs = ConvertStringToU32Vector(kw);
+    std::vector<uint8_t> Inputs = ConvertStringToU8Vector(kw);
     std::vector<Token> Tokens = SM.ReceiveInputs(
         Inputs, StateMachine::TokenGenerationStrategy::GenerateAtLast);
 
@@ -74,14 +74,15 @@ TEST_F(KeywordStateMachineTest, HandlesOtherKeywords) {
     SCOPED_TRACE("Testing keyword: " + kw);
 
     ASSERT_EQ(Tokens.size(), 1);
-    EXPECT_EQ(Tokens.front().Content, ConvertStringToU32Vector(kw));
+    EXPECT_EQ(Tokens.front().Content, ConvertStringToU8Vector(kw));
     EXPECT_TRUE(Tokens.front().IsValid());
+    EXPECT_EQ(Tokens.front().Type, TokenType::Keyword);
   }
 }
 
 // 子测试：测试非法组合 "whileif"
 TEST_F(KeywordStateMachineTest, HandlesInvalidCombination) {
-  std::vector<uint32_t> Inputs = ConvertStringToU32Vector("whileif");
+  std::vector<uint8_t> Inputs = ConvertStringToU8Vector("whileif");
   std::vector<Token> Tokens = SM.ReceiveInputs(
       Inputs, StateMachine::TokenGenerationStrategy::GenerateAtLast);
 
@@ -99,14 +100,14 @@ protected:
   void SetUp() override {
     StateFlagStrategy FlagStrategy = {
         TokenType::Error,
-        TokenType::Separater,
+        TokenType::Separator,
     };
     Graph.UpdateStateFlagStrategy(FlagStrategy);
 
-    std::vector<std::vector<uint32_t>> WordList = {
-        {static_cast<uint32_t>('(')}, {static_cast<uint32_t>(')')},
-        {static_cast<uint32_t>(',')}, {static_cast<uint32_t>(';')},
-        {static_cast<uint32_t>('[')}, {static_cast<uint32_t>(']')},
+    std::vector<std::vector<uint8_t>> WordList = {
+      {static_cast<uint8_t>('(')}, {static_cast<uint8_t>(')')},
+      {static_cast<uint8_t>(',')}, {static_cast<uint8_t>(';')},
+      {static_cast<uint8_t>('[')}, {static_cast<uint8_t>(']')},
     };
 
     Graph.AddWordList(WordList);
@@ -117,18 +118,18 @@ protected:
 
 TEST_F(SeparatorStateMachineTest, ParsesComplexSeparators) {
   SM.Reset();
-  std::vector<uint32_t> Inputs = ConvertStringToU32Vector("(([],);");
+  std::vector<uint8_t> Inputs = ConvertStringToU8Vector("(([],);");
   std::vector<Token> Tokens = SM.ReceiveInputs(Inputs);
 
   ASSERT_EQ(Tokens.size(), 7);
 
-  EXPECT_EQ(Tokens.at(0).Content, ConvertStringToU32Vector("("));
-  EXPECT_EQ(Tokens.at(1).Content, ConvertStringToU32Vector("("));
-  EXPECT_EQ(Tokens.at(2).Content, ConvertStringToU32Vector("["));
-  EXPECT_EQ(Tokens.at(3).Content, ConvertStringToU32Vector("]"));
-  EXPECT_EQ(Tokens.at(4).Content, ConvertStringToU32Vector(","));
-  EXPECT_EQ(Tokens.at(5).Content, ConvertStringToU32Vector(")"));
-  EXPECT_EQ(Tokens.at(6).Content, ConvertStringToU32Vector(";"));
+  EXPECT_EQ(Tokens.at(0).Content, ConvertStringToU8Vector("("));
+  EXPECT_EQ(Tokens.at(1).Content, ConvertStringToU8Vector("("));
+  EXPECT_EQ(Tokens.at(2).Content, ConvertStringToU8Vector("["));
+  EXPECT_EQ(Tokens.at(3).Content, ConvertStringToU8Vector("]"));
+  EXPECT_EQ(Tokens.at(4).Content, ConvertStringToU8Vector(","));
+  EXPECT_EQ(Tokens.at(5).Content, ConvertStringToU8Vector(")"));
+  EXPECT_EQ(Tokens.at(6).Content, ConvertStringToU8Vector(";"));
 }
 
 // ============================================================
@@ -139,7 +140,7 @@ protected:
   StateMachine SM;
   LayeredDFAGraph Graph;
 
-  void SetupGraph(std::vector<std::vector<uint32_t>> WordList) {
+  void SetupGraph(std::vector<std::vector<uint8_t>> WordList) {
     StateFlagStrategy FlagStrategy = {
         TokenType::Error,
         TokenType::ArithmeticOperator,
@@ -152,17 +153,17 @@ protected:
 };
 
 TEST_F(ArithmeticOperatorStateMachineTest, ArithmeticOperators) {
-  std::vector<std::vector<uint32_t>> WordList = {
-      {static_cast<uint32_t>('+')},
-      {static_cast<uint32_t>('-')},
-      {static_cast<uint32_t>('*')},
-      {static_cast<uint32_t>('/')},
+    std::vector<std::vector<uint8_t>> WordList = {
+      {static_cast<uint8_t>('+')},
+      {static_cast<uint8_t>('-')},
+      {static_cast<uint8_t>('*')},
+      {static_cast<uint8_t>('/')},
   };
   SetupGraph(WordList);
 
   // Test '+'
   SM.Reset();
-  auto Inputs = ConvertStringToU32Vector("+");
+  auto Inputs = ConvertStringToU8Vector("+");
   auto Tokens = SM.ReceiveInputs(
       Inputs, StateMachine::TokenGenerationStrategy::GenerateAtLast);
   ASSERT_FALSE(Tokens.empty());
@@ -170,7 +171,7 @@ TEST_F(ArithmeticOperatorStateMachineTest, ArithmeticOperators) {
 
   // Test '++' (Error case)
   SM.Reset();
-  Inputs = ConvertStringToU32Vector("++");
+  Inputs = ConvertStringToU8Vector("++");
   Tokens = SM.ReceiveInputs(
       Inputs, StateMachine::TokenGenerationStrategy::GenerateAtLast);
   ASSERT_FALSE(Tokens.empty());
@@ -185,7 +186,7 @@ protected:
   StateMachine SM;
   LayeredDFAGraph Graph;
 
-  void SetupGraph(std::vector<std::vector<uint32_t>> WordList) {
+  void SetupGraph(std::vector<std::vector<uint8_t>> WordList) {
     StateFlagStrategy FlagStrategy = {
         TokenType::Error,
         TokenType::RelationalOperator,
@@ -198,16 +199,16 @@ protected:
 };
 
 TEST_F(RelationalOperatorStateMachineTest, RelationalOperators) {
-  std::vector<std::vector<uint32_t>> WordList = {
-      ConvertStringToU32Vector("<"),  ConvertStringToU32Vector("<="),
-      ConvertStringToU32Vector("="),  ConvertStringToU32Vector(">"),
-      ConvertStringToU32Vector(">="), ConvertStringToU32Vector("<>"),
+  std::vector<std::vector<uint8_t>> WordList = {
+      ConvertStringToU8Vector("<"),  ConvertStringToU8Vector("<="),
+      ConvertStringToU8Vector("="),  ConvertStringToU8Vector(">"),
+      ConvertStringToU8Vector(">="), ConvertStringToU8Vector("<>"),
   };
   SetupGraph(WordList);
 
   // Test '<'
   SM.Reset();
-  auto Inputs = ConvertStringToU32Vector("<");
+  auto Inputs = ConvertStringToU8Vector("<");
   auto Tokens = SM.ReceiveInputs(
       Inputs, StateMachine::TokenGenerationStrategy::GenerateAtLast);
   ASSERT_FALSE(Tokens.empty());
@@ -215,7 +216,7 @@ TEST_F(RelationalOperatorStateMachineTest, RelationalOperators) {
 
   // Test '<='
   SM.Reset();
-  Inputs = ConvertStringToU32Vector("<=");
+  Inputs = ConvertStringToU8Vector("<=");
   Tokens = SM.ReceiveInputs(
       Inputs, StateMachine::TokenGenerationStrategy::GenerateAtLast);
   ASSERT_FALSE(Tokens.empty());

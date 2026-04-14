@@ -10,7 +10,7 @@
 enum class TokenType : uint8_t {
   Invalid,
   Keyword,
-  Separater,
+  Separator,
   ArithmeticOperator,
   RelationalOperator,
   UnsignedNumber,
@@ -46,20 +46,20 @@ struct TokenContextInfo : public IPrintable {
 struct Token {
   Token() = default;
   Token(TokenType Type, TokenContextInfo Context,
-        std::vector<uint32_t> &Sequence)
+        std::vector<uint8_t> &Sequence)
       : Type(Type), Context(Context), Content(Sequence) {}
 
   bool IsValid() const { return Type != TokenType::Invalid; }
 
   TokenType Type;
   TokenContextInfo Context;
-  std::vector<uint32_t> Content;
+  std::vector<uint8_t> Content;
 };
 
 inline std::basic_ostream<char, std::char_traits<char>> &
 operator<<(std::basic_ostream<char, std::char_traits<char>> &__os,
            const Token &Token) {
-  for (uint32_t Char : Token.Content) {
+  for (uint8_t Char : Token.Content) {
     __os << static_cast<char>(Char);
   }
   return __os;

@@ -6,6 +6,7 @@
 #include <memory>
 #include <optional>
 #include <stdexcept>
+#include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -35,7 +36,7 @@ public:
    * @param Input The input to process.
    * @return StateID The ID of the next state.
    */
-  StateID ReceiveInput(uint32_t Input) {
+  StateID ReceiveInput(uint8_t Input) {
     std::shared_ptr<State> CurrentState =
         Manager.GetStateObject(CurrentStateID).lock();
 
@@ -59,14 +60,18 @@ public:
    * @param GenerationStrategy
    * @return std::vector<Token>
    */
+  template <typename TInput>
   std::vector<Token> ReceiveInputs(
-      std::vector<uint32_t> Inputs,
+      const std::vector<TInput> &Inputs,
       TokenGenerationStrategy GenerationStrategy =
           StateMachine::TokenGenerationStrategy::GenerateSoonIfPossible) {
+    static_assert(std::is_integral<TInput>::value,
+                  "StateMachine::ReceiveInputs requires integral input type.");
+
     std::vector<Token> Tokens;
 
     for (size_t i = 0; i < Inputs.size(); ++i) {
-      uint32_t Input = Inputs[i];
+      uint8_t Input = static_cast<uint8_t>(Inputs[i]);
 
       ReceiveInput(Input);
 
@@ -153,8 +158,11 @@ public:
       StateConfig Config;
       Config.Strategy = {
           StateConfig::StatePostTransitionStrategy::Append,
-          [](TokenCache &Cache, uint32_t Input) { Cache.Append(Input); }};
-      Config.TransitionMap = Graph.TransitionMaps.at(StateID);
+          [](TokenCache &Cache, uint8_t Input) { Cache.Append(Input); }};
+      Config.TransitionMap.clear();
+      for (const auto &[Input, NextStateID] : Graph.TransitionMaps.at(StateID)) {
+        Config.TransitionMap[static_cast<uint8_t>(Input)] = NextStateID;
+      }
       Config.Type = StateType::Intermediate;
       Config.CacheFlag = Graph.FlagStrategy.DefaultIntermediateStateFlag;
 
@@ -166,8 +174,11 @@ public:
       StateConfig Config;
       Config.Strategy = {
           StateConfig::StatePostTransitionStrategy::Ignore,
-          [](TokenCache &Cache, uint32_t Input) { Cache.Append(Input); }};
-      Config.TransitionMap = Graph.TransitionMaps.at(0);
+          [](TokenCache &, uint8_t) {}};
+      Config.TransitionMap.clear();
+      for (const auto &[Input, NextStateID] : Graph.TransitionMaps.at(0)) {
+        Config.TransitionMap[static_cast<uint8_t>(Input)] = NextStateID;
+      }
       Config.Type = StateType::Start;
       Config.CacheFlag = TokenType::Invalid;
 
@@ -179,7 +190,7 @@ public:
       StateConfig Config;
       Config.Strategy = {
           StateConfig::StatePostTransitionStrategy::Append,
-          [](TokenCache &Cache, uint32_t Input) { Cache.Append(Input); }};
+          [](TokenCache &Cache, uint8_t Input) { Cache.Append(Input); }};
       Config.TransitionMap = {};
       Config.Type = StateType::Error;
       Config.CacheFlag = Graph.FlagStrategy.DefaultReservedEndStateFlag;

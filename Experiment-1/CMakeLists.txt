@@ -17,6 +17,8 @@ include_directories(
 add_executable("Lexical-Analyzer"
     "Main.cpp"
 
+    "Source/AnalyzerCore.cpp"
+    "Source/CommandLine.cpp"
     "Source/State.cpp"
     "Source/Token.cpp"
 )

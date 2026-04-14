@@ -21,11 +21,11 @@ extern const StateID DefaultEndStateID;
 /** A cache for storing token information. */
 class TokenCache {
 public:
-  void Append(uint32_t Input) { Sequence.emplace_back(Input); }
+  void Append(uint8_t Input) { Sequence.emplace_back(Input); }
 
   void Clear() { Sequence.clear(); }
 
-  std::vector<uint32_t> GetCache() const { return Sequence; }
+  std::vector<uint8_t> GetCache() const { return Sequence; }
 
   void SetType(TokenType NewType) { Type = NewType; }
 
@@ -35,7 +35,7 @@ public:
     if (!Sequence.empty()) {
       Token.Type = Type;
       Token.Context = ContextInfo;
-      Token.Content = Sequence;
+      Token.Content.assign(Sequence.begin(), Sequence.end());
     } else {
       Token.Type = TokenType::Invalid;
     }
@@ -44,7 +44,7 @@ public:
   }
 
 private:
-  std::vector<uint32_t> Sequence;
+  std::vector<uint8_t> Sequence;
   TokenContextInfo ContextInfo;
   TokenType Type;
 };
@@ -60,20 +60,20 @@ enum class StateType : uint8_t {
 struct StateConfig {
 
   struct StatePostTransitionStrategy {
-    enum Strategy : uint32_t {
+    enum Strategy : uint8_t {
       Append,
       Ignore,
       Clear,
     };
 
     Strategy Strategy;
-    std::function<void(TokenCache &, uint32_t Input)> OperatorCallback;
+    std::function<void(TokenCache &, uint8_t Input)> OperatorCallback;
   };
 
   StateType Type;
   TokenType CacheFlag;
   StatePostTransitionStrategy Strategy;
-  std::unordered_map<uint32_t, StateID> TransitionMap;
+  std::unordered_map<uint8_t, StateID> TransitionMap;
 };
 
 /** Strategy for handling state flags. */
@@ -90,7 +90,7 @@ class State {
 public:
   State(StateID ID) : ID(ID) {}
 
-  StateID Transit(uint32_t Input) {
+  StateID Transit(uint8_t Input) {
     StateID NextStateID;
 
     if (TransitionMap.find(Input) != TransitionMap.end()) {
@@ -111,7 +111,7 @@ public:
 
   void UpdateType(StateType NewType) { Type = NewType; }
 
-  void ExecuteStrategy(TokenCache &Cache, uint32_t Input) {
+  void ExecuteStrategy(TokenCache &Cache, uint8_t Input) {
     Cache.SetType(TypeFlag);
 
     if (!Strategy.OperatorCallback) {
@@ -127,7 +127,7 @@ private:
   StateConfig::StatePostTransitionStrategy Strategy;
   TokenType TypeFlag;
   StateType Type;
-  std::unordered_map<uint32_t, StateID> TransitionMap;
+  std::unordered_map<uint8_t, StateID> TransitionMap;
 };
 
 class StateManager {
@@ -149,7 +149,7 @@ public:
     StateConfig StartStateConfig;
     StartStateConfig.Strategy = {
         StateConfig::StatePostTransitionStrategy::Append,
-        [](TokenCache &Cache, uint32_t Input) { Cache.Append(Input); }};
+      [](TokenCache &Cache, uint8_t Input) { Cache.Append(Input); }};
     StartStateConfig.Type = StateType::Start;
     StartStateConfig.CacheFlag = TokenType::Invalid;
     UpdateStateConfig(0, StartStateConfig);
@@ -159,7 +159,7 @@ public:
     StateConfig DefaultEndStateConfig;
     StartStateConfig.Strategy = {
         StateConfig::StatePostTransitionStrategy::Append,
-        [](TokenCache &Cache, uint32_t Input) { Cache.Append(Input); }};
+      [](TokenCache &Cache, uint8_t Input) { Cache.Append(Input); }};
     DefaultEndStateConfig.Type = StateType::End;
     DefaultEndStateConfig.CacheFlag = TokenType::Error;
     UpdateStateConfig(1, StartStateConfig);

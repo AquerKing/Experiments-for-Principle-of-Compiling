@@ -12,14 +12,14 @@
 
 class StateMachine;
 
-typedef std::tuple<uint64_t, uint32_t> PositionTuple;
+typedef std::tuple<uint64_t, uint8_t> PositionTuple;
 
 /** Hash function for PositionTuple. */
 struct PositionTupleHash {
   std::size_t operator()(const PositionTuple &k) const {
     auto [Column, Character] = k;
-    return std::hash<uint32_t>{}(Column) ^
-           (std::hash<uint32_t>{}(Character) << 1);
+    return std::hash<uint64_t>{}(Column) ^
+           (std::hash<uint8_t>{}(Character) << 1);
   }
 };
 
@@ -28,7 +28,7 @@ class LayeredDFAGraph {
   friend class StateMachine;
 
 public:
-  void AddWordList(std::vector<std::vector<uint32_t>> &List) {
+  void AddWordList(std::vector<std::vector<uint8_t>> &List) {
     if (GraphBuilt) {
       throw std::runtime_error(
           "LayeredDFAGraph: Graph built, anything new refused.");
@@ -48,7 +48,7 @@ public:
       }
 
       for (uint64_t j = 0; j < WordList[i].size(); ++j) {
-        std::tuple<uint64_t, uint32_t> PositionTuple =
+        std::tuple<uint64_t, uint8_t> PositionTuple =
             std::make_tuple(j, WordList[i][j]);
 
         // Allocate a new state id if not existed
@@ -62,7 +62,7 @@ public:
         if (j == 0) {
           TransitionMaps[0][WordList[i][j]] = ThisStateID;
         } else if (j > 0) {
-          std::tuple<uint64_t, uint32_t> LastPositionTuple =
+          std::tuple<uint64_t, uint8_t> LastPositionTuple =
               std::make_tuple(j - 1, WordList[i][j - 1]);
           TransitionMaps[StateIDMap[LastPositionTuple]][WordList[i][j]] =
               ThisStateID;
@@ -109,15 +109,14 @@ private:
   uint64_t NextStateID = 3; // Start state (0), default end state (1) and
   // reserved end state (2) are pre-allocated
   // graph building only
-  std::unordered_map<uint64_t, std::unordered_map<uint32_t, uint64_t>>
+  std::unordered_map<uint64_t, std::unordered_map<uint8_t, uint64_t>>
       TransitionMaps; // StateID -> (Input -> StateID), used for graph building
                       // only
   std::unordered_set<uint64_t>
       EndStates; // StateIDs of end states, used for graph building only
-  std::unordered_map<std::tuple<uint64_t, uint32_t>, uint64_t,
-                     PositionTupleHash>
+  std::unordered_map<PositionTuple, uint64_t, PositionTupleHash>
       StateIDMap; // Position tuple (column, character) -> StateID, used for
-  std::vector<std::vector<uint32_t>> WordList; // For graph building only
+  std::vector<std::vector<uint8_t>> WordList; // For graph building only
   StateFlagStrategy FlagStrategy; // State flag strategy for the graph, used for
                                   // state config building
   bool GraphBuilt =

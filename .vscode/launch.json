@@ -11,7 +11,9 @@
             "program": "${workspaceRoot}/build/Experiment-1/Lexical-Analyzer",
             "args": [
                 "-c",
-                "${workspaceRoot}/.cache/config.json"
+                "${workspaceRoot}/.cache/config.json",
+                "-f",
+                "${workspaceRoot}/.cache/source.txt"
             ],
             "cwd": "${workspaceRoot}"
         }
