@@ -22,10 +22,12 @@ static StateMachine NumberStateMachine;
 static std::unordered_set<uint8_t> NumberCharset = {
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.'};
 static std::unordered_set<uint8_t> IdentifierCharset = {
-    '_', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A',
-    'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
-    'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '_',
+};
 static std::unordered_set<uint8_t> WhitespaceCharset = {' ', '\t', '\n', '\r'};
 static std::unordered_set<uint8_t> SeparatorCharset = {'(', ')', '{', '}',
                                                        '[', ']', ';', ','};
@@ -136,6 +138,7 @@ void BuildStateMachines() {
     std::unordered_map<uint8_t, StateID> TransitionMap =
         MakeTransitionMap(3, true, false);
     TransitionMap['.'] = 4;
+    TransitionMap.merge(MakeTransitionMap(1, false, true, false));
 
     StateConfig Config;
     Config.Strategy = {
@@ -154,6 +157,7 @@ void BuildStateMachines() {
     std::unordered_map<uint8_t, StateID> TransitionMap =
         MakeTransitionMap(3, true, false, false);
     TransitionMap['.'] = 4;
+    TransitionMap.merge(MakeTransitionMap(1, false, true, false));
 
     StateConfig Config;
     Config.Strategy = {
@@ -171,6 +175,7 @@ void BuildStateMachines() {
 
     std::unordered_map<uint8_t, StateID> TransitionMap =
         MakeTransitionMap(4, true, false, false);
+    TransitionMap.merge(MakeTransitionMap(1, false, true, false));
 
     StateConfig Config;
     Config.Strategy = {
@@ -187,6 +192,11 @@ void BuildStateMachines() {
 
     StateConfig Config;
     Config.CacheFlag = TokenType::Error;
+    Config.Type = StateType::Error;
+    Config.Strategy = {
+        StateConfig::StatePostTransitionStrategy::Append,
+        [](TokenCache &Cache, uint8_t Input) { Cache.Append(Input); }};
+    Config.TransitionMap = MakeTransitionMap(1, true, true, true);
 
     Manager.UpdateStateConfig(1, Config);
   }
@@ -263,7 +273,8 @@ std::vector<Token> AnalyzeSource(const std::vector<uint8_t> &SourceCode) {
         !(ScannerFlag &
           static_cast<uint8_t>(ScannerState::InMultiLineComment))) {
       ScannerFlag |= static_cast<uint8_t>(ScannerState::InComment);
-      i += 2;
+      i += 1;
+      ContextInfo.Column += 2;
       continue;
     } else if (i < SourceCode.size() - 1 && Char == '/' &&
                SourceCode[i + 1] == '*' &&
@@ -271,18 +282,21 @@ std::vector<Token> AnalyzeSource(const std::vector<uint8_t> &SourceCode) {
                !(ScannerFlag &
                  static_cast<uint8_t>(ScannerState::InMultiLineComment))) {
       ScannerFlag |= static_cast<uint8_t>(ScannerState::InMultiLineComment);
-      i += 2;
+      i += 1;
+      ContextInfo.Column += 2;
       continue;
     } else if (i < SourceCode.size() - 1 && Char == '*' &&
                SourceCode[i + 1] == '/') {
       ScannerFlag &= ~static_cast<uint8_t>(ScannerState::InComment);
       ScannerFlag &= ~static_cast<uint8_t>(ScannerState::InMultiLineComment);
-      i += 2;
+      i += 1;
+      ContextInfo.Column += 2;
       continue;
     }
 
     if (ScannerFlag & static_cast<uint8_t>(ScannerState::InComment) ||
         ScannerFlag & static_cast<uint8_t>(ScannerState::InMultiLineComment)) {
+      ContextInfo.Column += 1;
       continue;
     }
 
@@ -291,8 +305,8 @@ std::vector<Token> AnalyzeSource(const std::vector<uint8_t> &SourceCode) {
       std::vector<uint8_t> Identifier =
           GetSubStringByCharset(SourceCode, i, IdentifierCharset);
       i += Identifier.size() - 1;
-
       KeywordStateMachine.SetContextInfo(ContextInfo.Row, ContextInfo.Column);
+
       Tokens = KeywordStateMachine.ReceiveInputs(
           Identifier, StateMachine::TokenGenerationStrategy::GenerateAtLast);
 
@@ -303,6 +317,8 @@ std::vector<Token> AnalyzeSource(const std::vector<uint8_t> &SourceCode) {
         TokenStateMachine.Reset();
       }
 
+      ContextInfo.Column += Identifier.size();
+
       if (Tokens.size() != 1) {
         throw std::runtime_error("Failed to recognize identifier: " +
                                  ConvertU8VectorToString(Identifier));
@@ -310,12 +326,16 @@ std::vector<Token> AnalyzeSource(const std::vector<uint8_t> &SourceCode) {
 
       RecognizedTokens.emplace_back(Tokens[0]);
       KeywordStateMachine.Reset();
-    } else if (Char >= '0' && Char <= '9') {
-      std::vector<uint8_t> Number =
-          GetSubStringByCharset(SourceCode, i, NumberCharset);
-      i += Number.size() - 1;
+    } else if (Char >= '0' && Char <= '9' || Char == '.') {
+      static std::unordered_set<uint8_t> Charset = NumberCharset;
+      Charset.insert('.');
 
+      std::vector<uint8_t> Number =
+          GetSubStringByCharset(SourceCode, i, Charset);
+      i += Number.size() - 1;
       NumberStateMachine.SetContextInfo(ContextInfo.Row, ContextInfo.Column);
+      ContextInfo.Column += Number.size();
+
       Tokens = NumberStateMachine.ReceiveInputs(
           Number, StateMachine::TokenGenerationStrategy::GenerateAtLast);
 
@@ -330,8 +350,9 @@ std::vector<Token> AnalyzeSource(const std::vector<uint8_t> &SourceCode) {
       std::vector<uint8_t> SeparatorSequence =
           GetSubStringByCharset(SourceCode, i, SeparatorCharset);
       i += SeparatorSequence.size() - 1;
-
       SeparatorStateMachine.SetContextInfo(ContextInfo.Row, ContextInfo.Column);
+      ContextInfo.Column += SeparatorSequence.size();
+
       Tokens = SeparatorStateMachine.ReceiveInputs(
           SeparatorSequence,
           StateMachine::TokenGenerationStrategy::GenerateSoonIfPossible);
@@ -348,9 +369,10 @@ std::vector<Token> AnalyzeSource(const std::vector<uint8_t> &SourceCode) {
       std::vector<uint8_t> String =
           GetSubStringByCharset(SourceCode, i, ArithmeticOperatorCharset);
       i += String.size() - 1;
-
       ArithmeticOperatorStateMachine.SetContextInfo(ContextInfo.Row,
                                                     ContextInfo.Column);
+      ContextInfo.Column += String.size();
+
       Tokens = ArithmeticOperatorStateMachine.ReceiveInputs(
           String, StateMachine::TokenGenerationStrategy::GenerateAtLast);
       if (!Tokens.size()) {
@@ -367,9 +389,10 @@ std::vector<Token> AnalyzeSource(const std::vector<uint8_t> &SourceCode) {
       std::vector<uint8_t> String =
           GetSubStringByCharset(SourceCode, i, RelationalOperatorCharset);
       i += String.size() - 1;
-
       RelationalOperatorStateMachine.SetContextInfo(ContextInfo.Row,
                                                     ContextInfo.Column);
+      ContextInfo.Column += String.size();
+
       Tokens = RelationalOperatorStateMachine.ReceiveInputs(
           String, StateMachine::TokenGenerationStrategy::GenerateAtLast);
       if (!Tokens.size()) {
@@ -387,6 +410,7 @@ std::vector<Token> AnalyzeSource(const std::vector<uint8_t> &SourceCode) {
       NewToken.Content = {Char};
       Tokens = {NewToken};
       RecognizedTokens.push_back(NewToken);
+      ContextInfo.Column += 1;
     }
 
     // DEBUG

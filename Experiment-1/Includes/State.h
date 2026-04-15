@@ -29,6 +29,10 @@ public:
 
   void SetType(TokenType NewType) { Type = NewType; }
 
+  void SetContextInfo(const TokenContextInfo &Context) {
+    ContextInfo = Context;
+  }
+
   Token GetToken() const {
     Token Token;
 
@@ -149,7 +153,7 @@ public:
     StateConfig StartStateConfig;
     StartStateConfig.Strategy = {
         StateConfig::StatePostTransitionStrategy::Append,
-      [](TokenCache &Cache, uint8_t Input) { Cache.Append(Input); }};
+        [](TokenCache &Cache, uint8_t Input) { Cache.Append(Input); }};
     StartStateConfig.Type = StateType::Start;
     StartStateConfig.CacheFlag = TokenType::Invalid;
     UpdateStateConfig(0, StartStateConfig);
@@ -159,7 +163,7 @@ public:
     StateConfig DefaultEndStateConfig;
     StartStateConfig.Strategy = {
         StateConfig::StatePostTransitionStrategy::Append,
-      [](TokenCache &Cache, uint8_t Input) { Cache.Append(Input); }};
+        [](TokenCache &Cache, uint8_t Input) { Cache.Append(Input); }};
     DefaultEndStateConfig.Type = StateType::End;
     DefaultEndStateConfig.CacheFlag = TokenType::Error;
     UpdateStateConfig(1, StartStateConfig);

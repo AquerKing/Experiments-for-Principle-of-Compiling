@@ -46,6 +46,7 @@ public:
 
     CurrentStateID = NextStateID;
     NextState->ExecuteStrategy(Cache, Input);
+    Cache.SetContextInfo(ContextInfo);
 
     StateMachineReady = false;
 
@@ -86,7 +87,7 @@ public:
         if (TempToken.IsValid()) {
           Tokens.emplace_back(TempToken);
         }
-        ContextInfo.Column += i;
+        ContextInfo.Column += i + 1;
         Reset();
         break;
       case TokenGenerationStrategy::GenerateAtLast:
@@ -160,7 +161,8 @@ public:
           StateConfig::StatePostTransitionStrategy::Append,
           [](TokenCache &Cache, uint8_t Input) { Cache.Append(Input); }};
       Config.TransitionMap.clear();
-      for (const auto &[Input, NextStateID] : Graph.TransitionMaps.at(StateID)) {
+      for (const auto &[Input, NextStateID] :
+           Graph.TransitionMaps.at(StateID)) {
         Config.TransitionMap[static_cast<uint8_t>(Input)] = NextStateID;
       }
       Config.Type = StateType::Intermediate;
@@ -172,9 +174,8 @@ public:
     // Update start state config
     {
       StateConfig Config;
-      Config.Strategy = {
-          StateConfig::StatePostTransitionStrategy::Ignore,
-          [](TokenCache &, uint8_t) {}};
+      Config.Strategy = {StateConfig::StatePostTransitionStrategy::Ignore,
+                         [](TokenCache &, uint8_t) {}};
       Config.TransitionMap.clear();
       for (const auto &[Input, NextStateID] : Graph.TransitionMaps.at(0)) {
         Config.TransitionMap[static_cast<uint8_t>(Input)] = NextStateID;
@@ -214,7 +215,6 @@ public:
    */
   void Reset() {
     CurrentStateID = StartStateID;
-    ContextInfo = TokenContextInfo::Invalid;
     Cache.Clear();
     StateMachineReady = true;
   }

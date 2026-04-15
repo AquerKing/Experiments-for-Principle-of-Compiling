@@ -37,8 +37,7 @@ struct TokenContextInfo : public IPrintable {
 
   std::string ToString() const override {
     std::ostringstream oss;
-    oss << "(" << std::left << std::setw(4) << Row << "," << std::left
-        << std::setw(4) << Column << ")";
+    oss << "(" << Row << "," << Column << ")";
     return oss.str();
   }
 };
