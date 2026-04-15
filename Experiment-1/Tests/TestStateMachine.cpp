@@ -28,7 +28,7 @@ protected:
         TokenType::Keyword,
         TokenType::Invalid,
     };
-    Graph.UpdateStateFlagStrategy(FlagStrategy);
+    Graph.SetStateFlagStrategy(FlagStrategy);
 
     std::vector<std::vector<uint8_t>> WordList = {
         ConvertStringToU8Vector("do"),     ConvertStringToU8Vector("end"),
@@ -102,7 +102,7 @@ protected:
         TokenType::Error,
         TokenType::Separator,
     };
-    Graph.UpdateStateFlagStrategy(FlagStrategy);
+    Graph.SetStateFlagStrategy(FlagStrategy);
 
     std::vector<std::vector<uint8_t>> WordList = {
       {static_cast<uint8_t>('(')}, {static_cast<uint8_t>(')')},
@@ -145,7 +145,7 @@ protected:
         TokenType::Error,
         TokenType::ArithmeticOperator,
     };
-    Graph.UpdateStateFlagStrategy(FlagStrategy);
+    Graph.SetStateFlagStrategy(FlagStrategy);
     Graph.AddWordList(WordList);
     Graph.BuildGraph();
     SM.BuildFromLayeredDFAGraph(Graph);
@@ -191,7 +191,7 @@ protected:
         TokenType::Error,
         TokenType::RelationalOperator,
     };
-    Graph.UpdateStateFlagStrategy(FlagStrategy);
+    Graph.SetStateFlagStrategy(FlagStrategy);
     Graph.AddWordList(WordList);
     Graph.BuildGraph();
     SM.BuildFromLayeredDFAGraph(Graph);

@@ -80,7 +80,7 @@ public:
     GraphBuilt = true;
   }
 
-  void UpdateStateFlagStrategy(const StateFlagStrategy &Strategy) {
+  void SetStateFlagStrategy(const StateFlagStrategy &Strategy) {
     FlagStrategy = Strategy;
   }
 
