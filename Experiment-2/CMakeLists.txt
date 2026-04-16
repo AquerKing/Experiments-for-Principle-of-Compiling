@@ -12,22 +12,34 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 COMPONENTS Widgets QUIET)
 if(Qt6_FOUND)
     set(QT_VERSION_MAJOR 6)
-    # else()
-    #     find_package(Qt5 COMPONENTS Widgets REQUIRED)
-    #     set(QT_VERSION_MAJOR 5)
+else()
+    find_package(Qt5 COMPONENTS Widgets REQUIRED)
+    set(QT_VERSION_MAJOR 5)
 endif()
 
-set(PROJECT_SOURCES
+set(APP_SOURCES
     main.cpp
+
     ui/mainwindow.cpp
     ui/mainwindow.h
     ui/mainwindow.ui
+
+    src/grammar.cpp
+    src/symbols.cpp
+    src/utils.cpp
+)
+
+set(TEST_SOURCES
+    test/test_ll_1_analyzer.cpp
+    src/grammar.cpp
+    src/symbols.cpp
+    src/utils.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(LL1_Analyzer
         MANUAL_FINALIZATION
-        ${PROJECT_SOURCES}
+        ${APP_SOURCES}
     )
     # Define target properties for Android with Qt 6 as:
     #    set_property(TARGET LL1_Analyzer APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -36,19 +48,23 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 else()
     if(ANDROID)
         add_library(LL1_Analyzer SHARED
-            ${PROJECT_SOURCES}
+            ${APP_SOURCES}
         )
         # Define properties for Android with Qt 5 after find_package() calls as:
         #    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
     else()
         add_executable(LL1_Analyzer
-            ${PROJECT_SOURCES}
+            ${APP_SOURCES}
         )
     endif()
 endif()
 
 target_link_libraries(LL1_Analyzer PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
-target_include_directories(LL1_Analyzer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/ui)
+target_include_directories(LL1_Analyzer
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/ui
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
@@ -66,13 +82,27 @@ set_target_properties(LL1_Analyzer PROPERTIES
     WIN32_EXECUTABLE TRUE
 )
 
-include(GNUInstallDirs)
-install(TARGETS LL1_Analyzer
-    BUNDLE DESTINATION .
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-)
+# include(GNUInstallDirs)
+# install(TARGETS LL1_Analyzer
+#     BUNDLE DESTINATION .
+#     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+# )
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt_finalize_executable(LL1_Analyzer)
 endif()
+
+find_package(GTest REQUIRED)
+include(GoogleTest)
+
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+add_executable("Test-Grammar"
+    ${TEST_SOURCES}
+)
+
+target_include_directories("Test-Grammar" PRIVATE "include")
+target_link_libraries("Test-Grammar" PRIVATE GTest::gtest_main)
+
+gtest_discover_tests("Test-Grammar")
