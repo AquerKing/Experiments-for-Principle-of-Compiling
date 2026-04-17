@@ -10,8 +10,6 @@ public:
   static bool IsLowerCase(char c);
 };
 
-
-
 class GrammarUtils final {
 public:
   GrammarUtils() = delete;
@@ -23,9 +21,10 @@ public:
 
 public:
   static std::vector<GenerativeExpression>
-  ParseGenerativeExpressions(const std::string &input,
-                             SymbolManager &symbolManager);
+  ParseGenerativeExpressions(const std::string &Input,
+                             SymbolManager &SymbolManager);
 
   static std::vector<uint64_t>
-  ParseSymbolSequence(const std::string_view &input, SymbolManager &symbolManager);
+  ParseSymbolSequence(const std::string_view &Input,
+                      SymbolManager &SymbolManager);
 };

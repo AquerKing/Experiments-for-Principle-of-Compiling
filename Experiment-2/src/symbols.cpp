@@ -5,6 +5,7 @@
 #include <string>
 
 Terminator Terminator::Epsilon(0, "ε");
+Terminator Terminator::EndSymbol(0, "#");
 
 std::string Symbol::ToString() const { return Value; }
 
@@ -12,7 +13,16 @@ SymbolType Terminator::GetType() const { return SymbolType::Terminator; }
 
 SymbolType NonTerminator::GetType() const { return SymbolType::NonTerminator; }
 
-SymbolManager::SymbolManager() { UsedSymbolIds.insert(0); }
+SymbolManager::SymbolManager() {
+  for (uint64_t i = 0; i < ReservedSymbolIdCount; ++i) {
+    UsedSymbolIds.insert(i);
+  }
+  NextSymbolId = ReservedSymbolIdCount;
+  Symbols[Terminator::Epsilon.SymbolId] =
+      std::make_shared<Terminator>(Terminator::Epsilon);
+  Symbols[Terminator::EndSymbol.SymbolId] =
+      std::make_shared<Terminator>(Terminator::EndSymbol);
+}
 
 uint64_t SymbolManager::CreateSymbol(const std::string &Value,
                                      const SymbolType Type) {
@@ -29,6 +39,9 @@ uint64_t SymbolManager::CreateSymbol(const std::string &Value,
     Symbols[id] = std::make_shared<Terminator>(id, Value);
   } else if (Type == SymbolType::NonTerminator) {
     Symbols[id] = std::make_shared<NonTerminator>(id, Value);
+    if (StartSymbolId == 0) {
+      StartSymbolId = id;
+    }
   } else {
     throw std::invalid_argument(
         "Unsupported symbol type for registering symbol: ");
@@ -37,8 +50,9 @@ uint64_t SymbolManager::CreateSymbol(const std::string &Value,
   return id;
 }
 
-uint64_t SymbolManager::FetchSymbolIdByName(const std::string &Value,
-                                            const SymbolType TypeIfNotExisted) {
+uint64_t
+SymbolManager::FetchSymbolIdByValue(const std::string &Value,
+                                    const SymbolType TypeIfNotExisted) {
   if (IsSymbolExisted(Value)) {
     return SymbolIdsByValue.at(Value);
   }
@@ -54,14 +68,7 @@ uint64_t SymbolManager::FetchSymbolIdByName(const std::string &Value,
   UsedSymbolIds.insert(NewSymbolId);
   SymbolIdsByValue[Value] = NewSymbolId;
 
-  if (TypeIfNotExisted == SymbolType::Terminator) {
-    Symbols[NewSymbolId] = std::make_shared<Terminator>(NewSymbolId, Value);
-  } else if (TypeIfNotExisted == SymbolType::NonTerminator) {
-    Symbols[NewSymbolId] = std::make_shared<NonTerminator>(NewSymbolId, Value);
-  } else {
-    throw std::invalid_argument(
-        "Invalid symbol type specified for non-existent symbol: ");
-  }
+  CreateSymbol(Value, TypeIfNotExisted);
 
   return NewSymbolId;
 }
@@ -81,6 +88,24 @@ uint64_t SymbolManager::GetNextSymbolId() {
   }
 
   return NextSymbolId;
+}
+
+uint64_t SymbolManager::GetStartSymbolId() const {
+  if (StartSymbolId < ReservedSymbolIdCount ||
+      UsedSymbolIds.count(StartSymbolId) == 0 ||
+      GetSymbol(StartSymbolId)->GetType() != SymbolType::NonTerminator) {
+    throw std::runtime_error("Start symbol ID has not been set.");
+  }
+  return StartSymbolId;
+}
+
+void SymbolManager::SetStartSymbolId(uint64_t Id) {
+  if (Id < ReservedSymbolIdCount || UsedSymbolIds.count(Id) == 0 ||
+      GetSymbol(Id)->GetType() != SymbolType::NonTerminator) {
+    throw std::invalid_argument("Invalid start symbol ID. It must be a valid "
+                                "non-terminator symbol ID.");
+  }
+  StartSymbolId = Id;
 }
 
 bool SymbolManager::IsSymbolExisted(const std::string &Value) const {

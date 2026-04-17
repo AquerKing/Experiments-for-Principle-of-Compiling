@@ -18,22 +18,23 @@ else()
 endif()
 
 set(APP_SOURCES
-    main.cpp
+    "main.cpp"
 
-    ui/mainwindow.cpp
-    ui/mainwindow.h
-    ui/mainwindow.ui
+    "ui/mainwindow.cpp"
+    "ui/mainwindow.h"
+    "ui/mainwindow.ui"
 
-    src/grammar.cpp
-    src/symbols.cpp
-    src/utils.cpp
+    "src/grammar.cpp"
+    "src/symbols.cpp"
+    "src/utils.cpp"
 )
 
 set(TEST_SOURCES
-    test/test_ll_1_analyzer.cpp
-    src/grammar.cpp
-    src/symbols.cpp
-    src/utils.cpp
+    "test/test_ll_1_analyzer.cpp"
+
+    "src/grammar.cpp"
+    "src/symbols.cpp"
+    "src/utils.cpp"
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

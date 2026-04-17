@@ -95,11 +95,11 @@ GrammarUtils::ParseSymbolSequence(const std::string_view &Input,
 
     if (CharacterUtils::IsUpperCase(c)) {
       uint64_t NonTerminatorId =
-          Manager.FetchSymbolIdByName({c}, SymbolType::NonTerminator);
+          Manager.FetchSymbolIdByValue({c}, SymbolType::NonTerminator);
       SymbolIds.push_back(NonTerminatorId);
     } else {
       uint64_t TerminatorId =
-          Manager.FetchSymbolIdByName({c}, SymbolType::Terminator);
+          Manager.FetchSymbolIdByValue({c}, SymbolType::Terminator);
       SymbolIds.push_back(TerminatorId);
     }
   }
