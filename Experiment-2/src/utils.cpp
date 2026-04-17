@@ -29,16 +29,8 @@ GrammarUtils::ParseGenerativeExpressions(const std::string &input,
         "<Source>-><Target1><Target2>...");
   }
 
-  uint64_t SourceNonTerminatorId = 0;
-  if (const std::string Source = input.substr(0, 1);
-      !Manager.IsSymbolExisted(Source)) {
-    SourceNonTerminatorId =
-        Manager.CreateSymbol(Source, SymbolType::NonTerminator);
-    if (SourceNonTerminatorId == 0) {
-      throw std::runtime_error("Failed to create non-terminator symbol for "
-                               "generative expression source.");
-    }
-  }
+  uint64_t SourceNonTerminatorId =
+      Manager.FetchSymbolIdByValue({input[0]}, SymbolType::NonTerminator);
 
   std::string TargetsExpresion = input.substr(3);
   if (TargetsExpresion.empty()) {
@@ -68,8 +60,7 @@ GrammarUtils::ParseGenerativeExpressions(const std::string &input,
   }
 
   for (const auto &Target : AlternativeTargets) {
-    expressions.emplace_back(SourceNonTerminatorId, Target,
-                             &Manager);
+    expressions.emplace_back(SourceNonTerminatorId, Target, &Manager);
   }
 
   return expressions;
