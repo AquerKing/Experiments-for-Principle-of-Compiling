@@ -22,7 +22,7 @@ TEST(SymbolSequenceTest, ParseGenerativeExpression) {
     std::vector<GenerativeExpression> Expressions =
         GrammarUtils::ParseGenerativeExpressions(ExpressionString, Manager);
     EXPECT_EQ(Manager.GetSymbolCount(),
-              SymbolManager::ReservedSymbolIdCount + 5);
+              SymbolManager::ReservedSymbolIdCount + 6);
     EXPECT_EQ(Expressions.size(), 3);
     EXPECT_EQ(Expressions[0].ToString(), "E->BC");
     EXPECT_EQ(Expressions[1].ToString(), "E->Ac");
@@ -38,5 +38,16 @@ TEST(SymbolSequenceTest, ParseGenerativeExpression) {
     EXPECT_EQ(Expressions.size(), 2);
     EXPECT_EQ(Expressions[0].ToString(), "T->F");
     EXPECT_EQ(Expressions[1].ToString(), "T->T*F\nF");
+  }
+  {
+    std::string ExpressionString = "T->F|@";
+    SymbolManager Manager;
+    std::vector<GenerativeExpression> Expressions =
+        GrammarUtils::ParseGenerativeExpressions(ExpressionString, Manager);
+    EXPECT_EQ(Manager.GetSymbolCount(),
+              SymbolManager::ReservedSymbolIdCount + 2);
+    EXPECT_EQ(Expressions.size(), 2);
+    EXPECT_EQ(Expressions[0].ToString(), "T->F");
+    EXPECT_EQ(Expressions[1].ToString(), "T->ε");
   }
 }

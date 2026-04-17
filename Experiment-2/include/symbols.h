@@ -35,6 +35,7 @@ class Terminator final : public Symbol {
 public:
   /** The epsilon symbol. */
   static Terminator Epsilon;
+  /** The end symbol. */
   static Terminator EndSymbol;
 
 public:

@@ -5,7 +5,7 @@
 #include <string>
 
 Terminator Terminator::Epsilon(0, "ε");
-Terminator Terminator::EndSymbol(0, "#");
+Terminator Terminator::EndSymbol(1, "#");
 
 std::string Symbol::ToString() const { return Value; }
 
@@ -64,11 +64,7 @@ SymbolManager::FetchSymbolIdByValue(const std::string &Value,
         "with the appropriate type.");
   }
 
-  uint64_t NewSymbolId = GetNextSymbolId();
-  UsedSymbolIds.insert(NewSymbolId);
-  SymbolIdsByValue[Value] = NewSymbolId;
-
-  CreateSymbol(Value, TypeIfNotExisted);
+  uint64_t NewSymbolId = CreateSymbol(Value, TypeIfNotExisted);
 
   return NewSymbolId;
 }
@@ -76,13 +72,13 @@ SymbolManager::FetchSymbolIdByValue(const std::string &Value,
 uint64_t SymbolManager::GetSymbolCount() const { return UsedSymbolIds.size(); }
 
 uint64_t SymbolManager::GetNextSymbolId() {
-  if (NextSymbolId == 0) {
+  if (NextSymbolId < ReservedSymbolIdCount) {
     throw std::overflow_error("No more symbol IDs available.");
   }
 
   while (UsedSymbolIds.count(NextSymbolId) > 0) {
     ++NextSymbolId;
-    if (NextSymbolId == 0) {
+    if (NextSymbolId < ReservedSymbolIdCount) {
       throw std::overflow_error("No more symbol IDs available.");
     }
   }
@@ -118,6 +114,8 @@ bool SymbolManager::IsSymbolExisted(const std::string &Value) const {
 Symbol *SymbolManager::GetSymbol(const uint64_t id) const {
   if (id == 0) {
     return &Terminator::Epsilon;
+  } else if (id == 1) {
+    return &Terminator::EndSymbol;
   }
 
   auto it = Symbols.find(id);
