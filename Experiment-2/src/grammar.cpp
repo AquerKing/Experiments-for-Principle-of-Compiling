@@ -2,10 +2,12 @@
 #include "symbols.h"
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <functional>
 #include <stdexcept>
 #include <sys/types.h>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -37,6 +39,8 @@ void GenerativeExpressionPreprocessor::CalculateFirstAndFollowSets(
 
   CalculateFirstSets(Expressions);
   CalculateFollowSets(Expressions);
+
+  Preprocessed = true;
 }
 
 bool GenerativeExpressionPreprocessor::IsPreprocessed() const {
@@ -117,13 +121,69 @@ void GenerativeExpressionPreprocessor::CalculateFirstSets(
 
 void GenerativeExpressionPreprocessor::CalculateFollowSets(
     const std::vector<GenerativeExpression> &Expressions) {
-  for (const GenerativeExpression &Expression : Expressions) {
-    if (Manager->GetSymbol(Expression.Source)->GetType() ==
-        SymbolType::NonTerminator) {
-      for (auto &Suffix : SuffixesOfNonTerminators[Expression.Source]) {
+  // The follow set of the start symbol should contain the end symbol.
+  FollowSets[Manager->GetStartSymbolId()].insert(
+      Terminator::EndSymbol.SymbolId);
+
+  bool Updated = true;
+  while (Updated) {
+    Updated = false;
+
+    for (const auto &Expression : Expressions) {
+      const size_t SymbolCount = Expression.Targets.size();
+
+      for (size_t i = 0; i < SymbolCount; ++i) {
+        const uint64_t SymbolId = Expression.Targets.at(i);
+        const uint64_t OldFollowSetSize = FollowSets[SymbolId].size();
+
+        if (i == SymbolCount - 1) {
+          FollowSets[SymbolId].insert(FollowSets[Expression.Source].begin(),
+                                      FollowSets[Expression.Source].end());
+        } else {
+          FollowSets[SymbolId].insert(
+              FirstSets[Expression.Targets.at(i + 1)].begin(),
+              FirstSets[Expression.Targets.at(i + 1)].end());
+
+          if (FirstSets[Expression.Targets.at(i + 1)].count(
+                  Terminator::Epsilon.SymbolId) > 0) {
+            FollowSets[SymbolId].erase(Terminator::Epsilon.SymbolId);
+          }
+        }
+
+        if (FollowSets[SymbolId].size() > OldFollowSetSize) {
+          Updated = true;
+        }
       }
     }
   }
+}
+
+std::unordered_set<uint64_t>
+GenerativeExpressionPreprocessor::GetFirstSetOfSymbol(uint64_t SymbolId) const {
+  if (Preprocessed == false) {
+    throw std::runtime_error("First sets have not been calculated. Please call "
+                             "CalculateFirstAndFollowSets() first.");
+  }
+
+  if (FirstSets.count(SymbolId) == 0) {
+    return {};
+  }
+  return FirstSets.at(SymbolId);
+}
+
+std::unordered_set<uint64_t>
+GenerativeExpressionPreprocessor::GetFollowSetOfSymbol(
+    uint64_t SymbolId) const {
+  if (Preprocessed == false) {
+    throw std::runtime_error(
+        "Follow sets have not been calculated. Please call "
+        "CalculateFirstAndFollowSets() first.");
+  }
+
+  if (FollowSets.count(SymbolId) == 0) {
+    return {};
+  }
+  return FollowSets.at(SymbolId);
 }
 
 void PredictiveAnalysisTable::SetItem(uint64_t NonTerminatorId,

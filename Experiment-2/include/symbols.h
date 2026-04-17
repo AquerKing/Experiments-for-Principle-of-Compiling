@@ -82,7 +82,8 @@ public:
   uint64_t CreateSymbol(const std::string &Value, const SymbolType Type);
 
   /**
-   * Fetches the ID of a symbol by its value.
+   * Fetches the ID of a symbol by its value. If the symbol does not exist, it
+   * will create a new symbol with the specified type and return its ID.
    * @param Value The value of the symbol.
    * @param TypeIfNotExisted The type of the symbol created when it does not
    * exist.
@@ -91,6 +92,14 @@ public:
   uint64_t
   FetchSymbolIdByValue(const std::string &Value,
                        SymbolType TypeIfNotExisted = SymbolType::Invalid);
+
+  /**
+   * Gets the ID of a symbol by its value. If the symbol does not exist, it will
+   * throw an exception.
+   * @param Value The value of the symbol.
+   * @return The ID of the symbol.
+   */
+  uint64_t GetSymbolIdByValue(const std::string &Value) const;
 
   /**
    * Gets a symbol by its ID.

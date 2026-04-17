@@ -69,6 +69,14 @@ SymbolManager::FetchSymbolIdByValue(const std::string &Value,
   return NewSymbolId;
 }
 
+uint64_t SymbolManager::GetSymbolIdByValue(const std::string &Value) const {
+  if (!IsSymbolExisted(Value)) {
+    throw std::invalid_argument("Symbol with value '" + Value +
+                                "' does not exist.");
+  }
+  return SymbolIdsByValue.at(Value);
+}
+
 uint64_t SymbolManager::GetSymbolCount() const { return UsedSymbolIds.size(); }
 
 uint64_t SymbolManager::GetNextSymbolId() {

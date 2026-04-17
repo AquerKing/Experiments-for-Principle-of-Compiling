@@ -57,6 +57,10 @@ public:
 
   bool IsPreprocessed() const;
 
+  std::unordered_set<uint64_t> GetFirstSetOfSymbol(uint64_t SymbolId) const;
+
+  std::unordered_set<uint64_t> GetFollowSetOfSymbol(uint64_t SymbolId) const;
+
 private:
   void
   PreprocessExpressions(const std::vector<GenerativeExpression> &Expressions);
