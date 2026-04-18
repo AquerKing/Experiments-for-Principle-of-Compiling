@@ -98,16 +98,22 @@ void GenerativeExpressionPreprocessor::CalculateFirstSets(
       // set
       for (const auto &TargetSequence :
            GenerativeTargetOfNonTerminators[SymbolId]) {
+        bool FirstSetReady = false;
         for (const auto &TargetSymbolId : TargetSequence) {
-          DFS(TargetSymbolId);
-          FirstSets[SymbolId].insert(FirstSets[TargetSymbolId].begin(),
-                                     FirstSets[TargetSymbolId].end());
+          if (!FirstSetReady) {
+            DFS(TargetSymbolId);
+            FirstSets[SymbolId].insert(FirstSets[TargetSymbolId].begin(),
+                                       FirstSets[TargetSymbolId].end());
 
-          // If the first set of the target symbol does not contain epsilon,
-          // we can stop here.
-          if (FirstSets[TargetSymbolId].count(Terminator::Epsilon.SymbolId) ==
-              0) {
-            break;
+            // If the first set of the target symbol does not contain epsilon,
+            // we can stop here.
+            if (FirstSets[TargetSymbolId].count(Terminator::Epsilon.SymbolId) ==
+                0) {
+              FirstSetReady = true;
+            }
+          } else if (Manager->GetSymbol(TargetSymbolId)->GetType() ==
+                     SymbolType::Terminator) {
+            DFS(TargetSymbolId);
           }
         }
       }
@@ -136,17 +142,29 @@ void GenerativeExpressionPreprocessor::CalculateFollowSets(
         const uint64_t SymbolId = Expression.Targets.at(i);
         const uint64_t OldFollowSetSize = FollowSets[SymbolId].size();
 
+        if (Manager->GetSymbol(SymbolId)->GetType() == SymbolType::Terminator) {
+          continue;
+        }
+
         if (i == SymbolCount - 1) {
           FollowSets[SymbolId].insert(FollowSets[Expression.Source].begin(),
                                       FollowSets[Expression.Source].end());
         } else {
-          FollowSets[SymbolId].insert(
-              FirstSets[Expression.Targets.at(i + 1)].begin(),
-              FirstSets[Expression.Targets.at(i + 1)].end());
+          for (size_t j = i + 1; j < SymbolCount; ++j) {
+            FollowSets[SymbolId].insert(
+                FirstSets[Expression.Targets.at(j)].begin(),
+                FirstSets[Expression.Targets.at(j)].end());
+            if (FirstSets[Expression.Targets.at(j)].count(
+                    Terminator::Epsilon.SymbolId) == 0) {
+              break;
+            }
 
-          if (FirstSets[Expression.Targets.at(i + 1)].count(
-                  Terminator::Epsilon.SymbolId) > 0) {
             FollowSets[SymbolId].erase(Terminator::Epsilon.SymbolId);
+
+            if (j == SymbolCount - 1) {
+              FollowSets[SymbolId].insert(FollowSets[Expression.Source].begin(),
+                                          FollowSets[Expression.Source].end());
+            }
           }
         }
 

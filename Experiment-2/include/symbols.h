@@ -11,14 +11,14 @@ enum class SymbolType {
   Invalid,
   Terminator,
   NonTerminator,
-  Epsilon,
+  // Epsilon,
 };
 
 class Symbol : public IStringConvertable {
 public:
   Symbol(const uint64_t Id) : SymbolId(Id) {}
-  Symbol(const uint64_t Id, std::string_view Value)
-      : SymbolId(Id), Value(Value) {}
+  Symbol(const uint64_t Id, std::string_view Value, SymbolType Type)
+      : SymbolId(Id), Value(Value), Type(Type) {}
 
   virtual SymbolType GetType() const = 0;
 
@@ -39,8 +39,9 @@ public:
   static Terminator EndSymbol;
 
 public:
-  Terminator(const uint64_t Id) : Symbol(Id) {}
-  Terminator(const uint64_t Id, std::string_view Value) : Symbol(Id, Value) {}
+  Terminator(const uint64_t Id) : Symbol(Id, "", SymbolType::Terminator) {}
+  Terminator(const uint64_t Id, std::string_view Value)
+      : Symbol(Id, Value, SymbolType::Terminator) {}
 
   /**
    * Gets the type of the symbol.
@@ -52,9 +53,10 @@ public:
 class NonTerminator final : public Symbol {
 
 public:
-  NonTerminator(const uint64_t Id) : Symbol(Id) {}
+  NonTerminator(const uint64_t Id)
+      : Symbol(Id, "", SymbolType::NonTerminator) {}
   NonTerminator(const uint64_t Id, std::string_view Value)
-      : Symbol(Id, Value) {}
+      : Symbol(Id, Value, SymbolType::NonTerminator) {}
 
   /**
    * Gets the type of the symbol.

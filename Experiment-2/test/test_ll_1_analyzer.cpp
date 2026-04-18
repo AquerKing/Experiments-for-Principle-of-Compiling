@@ -188,6 +188,54 @@ TEST(PredictiveAnalysisTableTest, ConstructPredictiveAnalysisTable) {
           Preprocessor.GetFirstSetOfSymbol(Manager.GetSymbolIdByValue("E")),
           ExpectedFirstSet);
     }
+    {
+      std::unordered_set<uint64_t> ExpectedFirstSet = {
+          Manager.GetSymbolIdByValue("+"),
+      };
+      EXPECT_EQ(
+          Preprocessor.GetFirstSetOfSymbol(Manager.GetSymbolIdByValue("+")),
+          ExpectedFirstSet);
+    }
+    {
+      std::unordered_set<uint64_t> ExpectedFirstSet = {
+          Manager.GetSymbolIdByValue("-"),
+      };
+      EXPECT_EQ(
+          Preprocessor.GetFirstSetOfSymbol(Manager.GetSymbolIdByValue("-")),
+          ExpectedFirstSet);
+    }
+    {
+      std::unordered_set<uint64_t> ExpectedFirstSet = {
+          Manager.GetSymbolIdByValue("*"),
+      };
+      EXPECT_EQ(
+          Preprocessor.GetFirstSetOfSymbol(Manager.GetSymbolIdByValue("*")),
+          ExpectedFirstSet);
+    }
+    {
+      std::unordered_set<uint64_t> ExpectedFirstSet = {
+          Manager.GetSymbolIdByValue("/"),
+      };
+      EXPECT_EQ(
+          Preprocessor.GetFirstSetOfSymbol(Manager.GetSymbolIdByValue("/")),
+          ExpectedFirstSet);
+    }
+    {
+      std::unordered_set<uint64_t> ExpectedFirstSet = {
+          Manager.GetSymbolIdByValue("("),
+      };
+      EXPECT_EQ(
+          Preprocessor.GetFirstSetOfSymbol(Manager.GetSymbolIdByValue("(")),
+          ExpectedFirstSet);
+    }
+    {
+      std::unordered_set<uint64_t> ExpectedFirstSet = {
+          Manager.GetSymbolIdByValue(")"),
+      };
+      EXPECT_EQ(
+          Preprocessor.GetFirstSetOfSymbol(Manager.GetSymbolIdByValue(")")),
+          ExpectedFirstSet);
+    }
   }
 
   // Check the follow sets of symbols.
@@ -215,6 +263,7 @@ TEST(PredictiveAnalysisTableTest, ConstructPredictiveAnalysisTable) {
           Manager.GetSymbolIdByValue("+"),
           Manager.GetSymbolIdByValue("-"),
           Manager.GetSymbolIdByValue(")"),
+          Terminator::EndSymbol.SymbolId,
       };
       EXPECT_EQ(
           Preprocessor.GetFollowSetOfSymbol(Manager.GetSymbolIdByValue("T")),
@@ -225,9 +274,20 @@ TEST(PredictiveAnalysisTableTest, ConstructPredictiveAnalysisTable) {
           Manager.GetSymbolIdByValue("+"),
           Manager.GetSymbolIdByValue("-"),
           Manager.GetSymbolIdByValue(")"),
+          Terminator::EndSymbol.SymbolId,
       };
       EXPECT_EQ(
           Preprocessor.GetFollowSetOfSymbol(Manager.GetSymbolIdByValue("S")),
+          ExpectedFollowSet);
+    }
+    {
+      std::unordered_set<uint64_t> ExpectedFollowSet = {
+          Manager.GetSymbolIdByValue("*"), Manager.GetSymbolIdByValue("/"),
+          Manager.GetSymbolIdByValue("+"), Manager.GetSymbolIdByValue("-"),
+          Manager.GetSymbolIdByValue(")"), Terminator::EndSymbol.SymbolId,
+      };
+      EXPECT_EQ(
+          Preprocessor.GetFollowSetOfSymbol(Manager.GetSymbolIdByValue("F")),
           ExpectedFollowSet);
     }
   }
