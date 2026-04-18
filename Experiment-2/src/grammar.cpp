@@ -176,7 +176,7 @@ void GenerativeExpressionPreprocessor::CalculateFollowSets(
   }
 }
 
-std::unordered_set<uint64_t>
+const std::unordered_set<uint64_t> &
 GenerativeExpressionPreprocessor::GetFirstSetOfSymbol(uint64_t SymbolId) const {
   if (Preprocessed == false) {
     throw std::runtime_error("First sets have not been calculated. Please call "
@@ -184,12 +184,12 @@ GenerativeExpressionPreprocessor::GetFirstSetOfSymbol(uint64_t SymbolId) const {
   }
 
   if (FirstSets.count(SymbolId) == 0) {
-    return {};
+    throw std::runtime_error("Symbol not found in first sets.");
   }
   return FirstSets.at(SymbolId);
 }
 
-std::unordered_set<uint64_t>
+const std::unordered_set<uint64_t> &
 GenerativeExpressionPreprocessor::GetFollowSetOfSymbol(
     uint64_t SymbolId) const {
   if (Preprocessed == false) {
@@ -199,9 +199,58 @@ GenerativeExpressionPreprocessor::GetFollowSetOfSymbol(
   }
 
   if (FollowSets.count(SymbolId) == 0) {
-    return {};
+    throw std::runtime_error("Symbol not found in follow sets.");
   }
   return FollowSets.at(SymbolId);
+}
+
+void PredictiveAnalysisTable::BuildFromPreprocessor(
+    const std::vector<GenerativeExpression> &Expressions,
+    const GenerativeExpressionPreprocessor &Preprocessor) {
+  if (!Preprocessor.IsPreprocessed()) {
+    throw std::runtime_error(
+        "The preprocessor has not been preprocessed. Please call "
+        "CalculateFirstAndFollowSets() first.");
+  }
+
+  for (const auto &Expression : Expressions) {
+    const uint64_t SourceSymbolId = Expression.Source;
+
+    for (const uint64_t FirstSymbolId :
+         Preprocessor.FirstSets.at(Expression.Targets.at(0))) {
+      if (FirstSymbolId == Terminator::Epsilon.SymbolId) {
+        continue;
+      }
+
+      if (Table.count(SourceSymbolId) > 0 &&
+          Table.at(SourceSymbolId).count(FirstSymbolId) > 0) {
+        throw std::runtime_error(
+            "The grammar is not LL(1) since there are multiple items in the "
+            "predictive analysis table for the same non-terminator and "
+            "terminator.");
+      }
+
+      SetItem(SourceSymbolId, FirstSymbolId,
+              const_cast<GenerativeExpression *>(&Expression));
+    }
+
+    if (Preprocessor.FirstSets.at(Expression.Targets.at(0))
+            .count(Terminator::Epsilon.SymbolId) > 0) {
+      for (const uint64_t FollowSymbolId :
+           Preprocessor.FollowSets.at(SourceSymbolId)) {
+        if (Table.count(SourceSymbolId) > 0 &&
+            Table.at(SourceSymbolId).count(FollowSymbolId) > 0) {
+          throw std::runtime_error(
+              "The grammar is not LL(1) since there are multiple items in the "
+              "predictive analysis table for the same non-terminator and "
+              "terminator.");
+        }
+
+        SetItem(SourceSymbolId, FollowSymbolId,
+                const_cast<GenerativeExpression *>(&Expression));
+      }
+    }
+  }
 }
 
 void PredictiveAnalysisTable::SetItem(uint64_t NonTerminatorId,
@@ -224,8 +273,7 @@ GenerativeExpression *
 PredictiveAnalysisTable::GetItem(uint64_t NonTerminatorId,
                                  uint64_t TerminatorId) const {
   if (!IsItemExisted(NonTerminatorId, TerminatorId)) {
-    throw std::runtime_error(
-        "The item does not exist in predictive analysis table.");
+    return nullptr;
   }
   return Table.at(NonTerminatorId).at(TerminatorId);
 }

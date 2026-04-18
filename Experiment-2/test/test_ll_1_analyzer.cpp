@@ -292,3 +292,53 @@ TEST(PredictiveAnalysisTableTest, ConstructPredictiveAnalysisTable) {
     }
   }
 }
+
+TEST(PredictiveAnalysisTableTest, BuildPredictiveAnalysisTable) {
+  std::vector<std::string> ExpresssionStrings = {
+      "E->TG",      "G->+TG|-TG", "G->@",   "T->FS",
+      "S->*FS|/FS", "S->@",       "F->(E)", "F->i",
+  };
+
+  SymbolManager Manager;
+  std::vector<GenerativeExpression> Expressions;
+  for (const auto &ExpressionString : ExpresssionStrings) {
+    std::vector<GenerativeExpression> ParsedExpressions =
+        GrammarUtils::ParseGenerativeExpressions(ExpressionString, Manager);
+    Expressions.insert(Expressions.end(), ParsedExpressions.begin(),
+                       ParsedExpressions.end());
+  }
+
+  GenerativeExpressionPreprocessor Preprocessor(&Manager);
+  Preprocessor.CalculateFirstAndFollowSets(Expressions);
+
+  PredictiveAnalysisTable Table;
+  Table.BuildFromPreprocessor(Expressions, Preprocessor);
+
+  // Test the items in the predictive analysis table.
+  {
+    EXPECT_EQ(Table
+                  .GetItem(Manager.GetSymbolIdByValue("S"),
+                           Manager.GetSymbolIdByValue("*"))
+                  ->ToString(),
+              "S->*FS");
+  }
+  {
+    EXPECT_EQ(Table
+                  .GetItem(Manager.GetSymbolIdByValue("F"),
+                           Manager.GetSymbolIdByValue("("))
+                  ->ToString(),
+              "F->(E)");
+  }
+  {
+    EXPECT_EQ(Table
+                  .GetItem(Manager.GetSymbolIdByValue("T"),
+                           Manager.GetSymbolIdByValue("("))
+                  ->ToString(),
+              "T->FS");
+  }
+  {
+    EXPECT_EQ(Table.GetItem(Manager.GetSymbolIdByValue("E"),
+                            Manager.GetSymbolIdByValue(")")),
+              nullptr);
+  }
+}

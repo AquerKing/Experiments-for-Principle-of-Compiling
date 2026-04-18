@@ -25,6 +25,7 @@ struct UInt64VectorHash {
 /** Represents a generative expression in the grammar. */
 class GenerativeExpression final : public IStringConvertable {
   friend class GenerativeExpressionPreprocessor;
+  friend class PredictiveAnalysisTable;
 
 public:
   GenerativeExpression(uint64_t Source, std::vector<uint64_t> Targets,
@@ -49,6 +50,8 @@ private:
 };
 
 class GenerativeExpressionPreprocessor {
+  friend class PredictiveAnalysisTable;
+
 public:
   GenerativeExpressionPreprocessor(SymbolManager *Manager) : Manager(Manager) {}
 
@@ -57,9 +60,11 @@ public:
 
   bool IsPreprocessed() const;
 
-  std::unordered_set<uint64_t> GetFirstSetOfSymbol(uint64_t SymbolId) const;
+  const std::unordered_set<uint64_t> &
+  GetFirstSetOfSymbol(uint64_t SymbolId) const;
 
-  std::unordered_set<uint64_t> GetFollowSetOfSymbol(uint64_t SymbolId) const;
+  const std::unordered_set<uint64_t> &
+  GetFollowSetOfSymbol(uint64_t SymbolId) const;
 
 private:
   void
@@ -86,6 +91,14 @@ private:
 class PredictiveAnalysisTable {
 public:
   PredictiveAnalysisTable() = default;
+
+  /**
+   * Builds the predictive analysis table from the preprocessor.
+   * @param Preprocessor The preprocessor containing the first and follow sets.
+   */
+  void
+  BuildFromPreprocessor(const std::vector<GenerativeExpression> &Expressions,
+                        const GenerativeExpressionPreprocessor &Preprocessor);
 
   /**
    * Sets an item in the predictive analysis table.
