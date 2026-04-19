@@ -20,6 +20,10 @@ bool GenerativeExpression::IsValid() const {
   return Source != 0 && !Targets.empty();
 }
 
+const std::vector<uint64_t> &GenerativeExpression::GetTargets() const {
+  return Targets;
+}
+
 std::string GenerativeExpression::ToString() const {
   if (Manager != nullptr && IsValid()) {
     std::string Result = Manager->Symbols.at(Source)->ToString() + "->";

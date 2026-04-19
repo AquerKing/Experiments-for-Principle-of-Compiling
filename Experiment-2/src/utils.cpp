@@ -97,3 +97,20 @@ GrammarUtils::ParseSymbolSequence(const std::string_view &Input,
 
   return SymbolIds;
 }
+
+std::string
+SymbolUtils::SymbolSequenceToString(const std::vector<uint64_t> &Seq,
+                                    const SymbolManager &Manager) {
+  std::string Result;
+
+  for (uint64_t SymbolId : Seq) {
+    const Symbol *Sym = Manager.GetSymbol(SymbolId);
+    if (Sym == nullptr) {
+      throw std::runtime_error("Invalid symbol ID: " +
+                               std::to_string(SymbolId));
+    }
+    Result += Sym->Value;
+  }
+
+  return Result;
+}

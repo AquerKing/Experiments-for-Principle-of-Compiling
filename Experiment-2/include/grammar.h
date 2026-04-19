@@ -43,6 +43,12 @@ public:
    */
   bool IsValid() const;
 
+  /**
+   * Gets the source symbol ID of the generative expression.
+   * @return The source symbol ID.
+   */
+  const std::vector<uint64_t> &GetTargets() const;
+
 private:
   SymbolManager *Manager;
   uint64_t Source;

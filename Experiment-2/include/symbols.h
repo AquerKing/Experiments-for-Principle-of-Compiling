@@ -15,6 +15,8 @@ enum class SymbolType {
 };
 
 class Symbol : public IStringConvertable {
+  friend class SymbolUtils;
+
 public:
   Symbol(const uint64_t Id) : SymbolId(Id) {}
   Symbol(const uint64_t Id, std::string_view Value, SymbolType Type)

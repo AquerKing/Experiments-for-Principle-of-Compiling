@@ -22,6 +22,8 @@ SymbolManager::SymbolManager() {
       std::make_shared<Terminator>(Terminator::Epsilon);
   Symbols[Terminator::EndSymbol.SymbolId] =
       std::make_shared<Terminator>(Terminator::EndSymbol);
+  SymbolIdsByValue["@"] = Terminator::Epsilon.SymbolId;
+  SymbolIdsByValue["#"] = Terminator::EndSymbol.SymbolId;
 }
 
 uint64_t SymbolManager::CreateSymbol(const std::string &Value,

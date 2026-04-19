@@ -24,6 +24,10 @@ set(APP_SOURCES
     "ui/mainwindow.h"
     "ui/mainwindow.ui"
 
+    "ui/editordialog.cpp"
+    "ui/editordialog.h"
+    "ui/editordialog.ui"
+
     "src/grammar.cpp"
     "src/symbols.cpp"
     "src/utils.cpp"
