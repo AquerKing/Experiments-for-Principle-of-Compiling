@@ -49,6 +49,12 @@ public:
    */
   const std::vector<uint64_t> &GetTargets() const;
 
+  /**
+   * Gets the source symbol ID of the generative expression.
+   * @return The source symbol ID.
+   */
+  const uint64_t GetSource() const;
+
 private:
   SymbolManager *Manager;
   uint64_t Source;

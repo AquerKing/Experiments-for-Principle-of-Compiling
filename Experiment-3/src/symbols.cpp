@@ -22,6 +22,8 @@ SymbolManager::SymbolManager() {
       std::make_shared<Terminator>(Terminator::Epsilon);
   Symbols[Terminator::EndSymbol.SymbolId] =
       std::make_shared<Terminator>(Terminator::EndSymbol);
+  SymbolIdsByValue["@"] = Terminator::Epsilon.SymbolId;
+  SymbolIdsByValue["#"] = Terminator::EndSymbol.SymbolId;
 }
 
 uint64_t SymbolManager::CreateSymbol(const std::string &Value,
@@ -67,6 +69,14 @@ SymbolManager::FetchSymbolIdByValue(const std::string &Value,
   uint64_t NewSymbolId = CreateSymbol(Value, TypeIfNotExisted);
 
   return NewSymbolId;
+}
+
+uint64_t SymbolManager::GetSymbolIdByValue(const std::string &Value) const {
+  if (!IsSymbolExisted(Value)) {
+    throw std::invalid_argument("Symbol with value '" + Value +
+                                "' does not exist.");
+  }
+  return SymbolIdsByValue.at(Value);
 }
 
 uint64_t SymbolManager::GetSymbolCount() const { return UsedSymbolIds.size(); }

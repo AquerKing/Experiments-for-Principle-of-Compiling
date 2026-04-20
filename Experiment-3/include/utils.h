@@ -28,3 +28,17 @@ public:
   ParseSymbolSequence(const std::string_view &Input,
                       SymbolManager &SymbolManager);
 };
+
+class SymbolUtils final {
+public:
+  SymbolUtils() = delete;
+  ~SymbolUtils() = delete;
+  SymbolUtils(const SymbolUtils &) = delete;
+  SymbolUtils &operator=(const SymbolUtils &) = delete;
+  SymbolUtils(SymbolUtils &&) = delete;
+  SymbolUtils &operator=(SymbolUtils &&) = delete;
+
+public:
+  static std::string SymbolSequenceToString(const std::vector<uint64_t> &Seq,
+                                            const SymbolManager &SymbolManager);
+};

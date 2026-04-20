@@ -11,14 +11,16 @@ enum class SymbolType {
   Invalid,
   Terminator,
   NonTerminator,
-  Epsilon,
+  // Epsilon,
 };
 
 class Symbol : public IStringConvertable {
+  friend class SymbolUtils;
+
 public:
   Symbol(const uint64_t Id) : SymbolId(Id) {}
-  Symbol(const uint64_t Id, std::string_view Value)
-      : SymbolId(Id), Value(Value) {}
+  Symbol(const uint64_t Id, std::string_view Value, SymbolType Type)
+      : SymbolId(Id), Value(Value), Type(Type) {}
 
   virtual SymbolType GetType() const = 0;
 
@@ -39,8 +41,9 @@ public:
   static Terminator EndSymbol;
 
 public:
-  Terminator(const uint64_t Id) : Symbol(Id) {}
-  Terminator(const uint64_t Id, std::string_view Value) : Symbol(Id, Value) {}
+  Terminator(const uint64_t Id) : Symbol(Id, "", SymbolType::Terminator) {}
+  Terminator(const uint64_t Id, std::string_view Value)
+      : Symbol(Id, Value, SymbolType::Terminator) {}
 
   /**
    * Gets the type of the symbol.
@@ -52,9 +55,10 @@ public:
 class NonTerminator final : public Symbol {
 
 public:
-  NonTerminator(const uint64_t Id) : Symbol(Id) {}
+  NonTerminator(const uint64_t Id)
+      : Symbol(Id, "", SymbolType::NonTerminator) {}
   NonTerminator(const uint64_t Id, std::string_view Value)
-      : Symbol(Id, Value) {}
+      : Symbol(Id, Value, SymbolType::NonTerminator) {}
 
   /**
    * Gets the type of the symbol.
@@ -82,7 +86,8 @@ public:
   uint64_t CreateSymbol(const std::string &Value, const SymbolType Type);
 
   /**
-   * Fetches the ID of a symbol by its value.
+   * Fetches the ID of a symbol by its value. If the symbol does not exist, it
+   * will create a new symbol with the specified type and return its ID.
    * @param Value The value of the symbol.
    * @param TypeIfNotExisted The type of the symbol created when it does not
    * exist.
@@ -91,6 +96,14 @@ public:
   uint64_t
   FetchSymbolIdByValue(const std::string &Value,
                        SymbolType TypeIfNotExisted = SymbolType::Invalid);
+
+  /**
+   * Gets the ID of a symbol by its value. If the symbol does not exist, it will
+   * throw an exception.
+   * @param Value The value of the symbol.
+   * @return The ID of the symbol.
+   */
+  uint64_t GetSymbolIdByValue(const std::string &Value) const;
 
   /**
    * Gets a symbol by its ID.

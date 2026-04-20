@@ -5,16 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch",
+            "name": "Launch Lexical_Analyzer",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceRoot}/build/Experiment-1/Lexical-Analyzer",
+            "program": "${workspaceRoot}/build/Experiment-1/Lexical_Analyzer",
             "args": [
                 "-c",
                 "${workspaceRoot}/.cache/config.json",
                 "-f",
                 "${workspaceRoot}/.cache/source.txt"
             ],
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Launch LR1_Analyzer",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceRoot}/build/Experiment-3/LR1_Analyzer",
+            "args": [],
             "cwd": "${workspaceRoot}"
         }
     ]

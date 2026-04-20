@@ -14,7 +14,7 @@ include_directories(
     ${Nlohmann_Json_HEADER_PATH}
 )
 
-add_executable("Lexical-Analyzer"
+add_executable("Lexical_Analyzer"
     "Main.cpp"
 
     "Source/AnalyzerCore.cpp"

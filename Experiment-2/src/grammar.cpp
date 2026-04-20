@@ -24,6 +24,8 @@ const std::vector<uint64_t> &GenerativeExpression::GetTargets() const {
   return Targets;
 }
 
+const uint64_t GenerativeExpression::GetSource() const { return Source; }
+
 std::string GenerativeExpression::ToString() const {
   if (Manager != nullptr && IsValid()) {
     std::string Result = Manager->Symbols.at(Source)->ToString() + "->";
