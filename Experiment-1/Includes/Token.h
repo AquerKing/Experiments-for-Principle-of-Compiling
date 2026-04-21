@@ -7,14 +7,24 @@
 
 #include "Interfaces.h"
 
+// enum class TokenType : uint8_t {
+//   Invalid,
+//   Keyword,
+//   Separator,
+//   ArithmeticOperator,
+//   RelationalOperator,
+//   UnsignedNumber,
+//   Token,
+//   Error,
+// };
 enum class TokenType : uint8_t {
-  Invalid,
-  Keyword,
-  Separator,
-  ArithmeticOperator,
-  RelationalOperator,
-  UnsignedNumber,
-  Token,
+  Invalid = 0,
+  Keyword = 1,
+  Separator = 2,
+  ArithmeticOperator = 3,
+  RelationalOperator = 4,
+  UnsignedNumber = 5,
+  Token = 6,
   Error,
 };
 
