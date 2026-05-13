@@ -194,13 +194,16 @@ void analyzeInputString(
 
     Action &action = actionTable[currentState][nextInput];
 
-    printAnalysisStep(symbolManager, stateStack, symbolStack, inputQueue,
-                      action, generativeExpressions);
+    // printAnalysisStep(symbolManager, stateStack, symbolStack, inputQueue,
+    //                   action, generativeExpressions);
 
     if (action.type == Action::Shift) {
-
+      printAnalysisStep(symbolManager, stateStack, symbolStack, inputQueue,
+                        action, generativeExpressions);
+                        
       stateStack.push(action.value);
       symbolStack.push(nextInput);
+
       inputQueue.pop();
     } else if (action.type == Action::Reduce) {
       // production index is 1-based
@@ -211,9 +214,13 @@ void analyzeInputString(
         symbolStack.pop();
       }
 
+      printAnalysisStep(symbolManager, stateStack, symbolStack, inputQueue,
+                        action, generativeExpressions);
       stateStack.push(gotoTable[stateStack.top()][production.GetSource()]);
       symbolStack.push(production.GetSource());
     } else if (action.type == Action::Accept) {
+      printAnalysisStep(symbolManager, stateStack, symbolStack, inputQueue,
+                        action, generativeExpressions);
       std::cout << "Input string is accepted by the grammar." << std::endl;
       break;
     }
@@ -265,20 +272,21 @@ void printAnalysisStep(const SymbolManager &symbolManager,
 
   switch (action.type) {
   case Action::Shift:
-    actionStr = "ACTION[0, " +
-                symbolManager.GetSymbol(action.value)->ToString() + "] = S(" +
-                std::to_string(action.value) + "), PUSH(" +
+    actionStr = "ACTION[" + std::to_string(stateStack.top()) + ", " +
+                symbolManager.GetSymbol(inputQueue.front())->ToString() +
+                "] = S(" + std::to_string(action.value) + "), PUSH(" +
                 std::to_string(action.value) + ")";
     break;
   case Action::Reduce:
     actionStr =
         "R(" + std::to_string(action.value) +
         "): " + productions[action.value - 1].ToString() + ", GOTO[" +
-        std::to_string(stateStack.top()) + ", " +
+        std::to_string(stateStack.get_vector().back()) + ", " +
         symbolManager.GetSymbol(productions[action.value - 1].GetSource())
             ->ToString() +
         "] = " +
-        std::to_string(gotoTable[stateStack.top()][symbolStack.top()]) +
+        std::to_string(gotoTable[stateStack.top()]
+                                [productions[action.value - 1].GetSource()]) +
         ", PUSH";
     break;
   case Action::Accept:
